@@ -1,0 +1,27 @@
+mkdir -p build
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/syscall.c -c -o build/syscall.o
+arm-none-eabi-as -g -mcpu=arm1176jzf-s src/init.s -c -o build/init.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/uart.c -c -o build/uart.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/sched.c -c -o build/sched.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/hw.c -c -o build/hw.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/pwm.c -c -o build/pwm.o
+arm-none-eabi-as -g -mcpu=arm1176jzf-s src/asm_tools.s -c -o build/asm_tools.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/tools.c -c -o build/tools.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/phyMem.c -c -o build/phyMem.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/util.c -c -o build/util.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option src/vmem.c -c -o build/vmem.o
+arm-none-eabi-gcc -mcpu=arm1176jzf-s -Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -I src /home/kevin/repos-git-svn/sysif-insa/code/reference/test/kmain-bidule.c -c -o build/kmain.o
+arm-none-eabi-ld build/syscall.o build/init.o build/uart.o build/sched.o build/hw.o build/pwm.o build/asm_tools.o build/tools.o build/phyMem.o build/util.o build/vmem.o build/kmain.o -o build/kernel.elf -T src/sysif.ld -Map build/mapfile.map
+arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks build/kernel.elf > build/kernel.list
+Breakpoint 1 at 0xa6ac: file /home/kevin/repos-git-svn/sysif-insa/code/reference/test/kmain-bidule.c, line 10.
+Breakpoint 2 at 0xa6a8: file /home/kevin/repos-git-svn/sysif-insa/code/reference/test/kmain-bidule.c, line 7.
+Breakpoint 3 at 0xa6b8: file /home/kevin/repos-git-svn/sysif-insa/code/reference/test/kmain-bidule.c, line 13.
+_start () at src/init.s:5
+5	    ldr pc,reset_vector
+
+Breakpoint 1, kmain () at /home/kevin/repos-git-svn/sysif-insa/code/reference/test/kmain-bidule.c:10
+10	{
+$1 = (void (*)()) 0xa6ac <kmain>
+
+Breakpoint 2, bidule () at /home/kevin/repos-git-svn/sysif-insa/code/reference/test/kmain-bidule.c:7
+7	}
