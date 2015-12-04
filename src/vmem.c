@@ -54,37 +54,54 @@ void configure_mmu_C()
 
 unsigned int init_kern_translation_table(void)
 {
-	uint32_t** table1 =(uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
+	uint32_t** table_base =(uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
 	
 	uint32_t i = 0;
 	for(i=0; i<FIRST_LVL_TT_COUN; i++){
-		table1[i] = (uint32_t*)kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+		table_base[i] = (uint32_t*)kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
 	}
+	uint32_t* second_level_table;
+	
 	uint32_t device_flags = 0b010000010110;
-	uint32_t log_addr = 0;
-	uint16_t first_index = 0;
-	uint16_t second_index = 0;
-	uint32_t* table2;
+	
+	/*
+	 Indexes
+	 */
+	uint32_t first_level_index;
+	uint32_t second_level_index;
+	/*
+	 Descriptors
+	 */
+	uint32_t first_level_descriptor;
+	uint32_t* first_level_descriptor_address;
+	uint32_t* second_level_descriptor_address;
+	
+	uint32_t log_addr;
+	
 	// init kern pages
 	for(log_addr = 0; log_addr <0x1000000; log_addr++){
-		first_index = (log_addr >> 20)<< 2;
-		second_index = ((log_addr >> 12) & 0xFF)<<2;
-		// on garde seulement les 12 derniers bits
-		//page_index = log_addr & 4096;
-		table2 = (uint32_t*)(((uint32_t)table1[first_index])&0xFFFFFC00);
-		table2[second_index] = log_addr & 0b000001010010;
+		first_level_index = log_addr >> 20;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
+		first_level_descriptor = *(first_level_descriptor_address);
+		
+		second_level_index = (log_addr >> 12) & 0xFF;
+		second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00);
+		second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
+		*second_level_descriptor_address = (log_addr & 0xFFFFF000) & 0b000001010010;
 	}
 	
 	//init devices pages
 	for(log_addr = 0x20000000; log_addr <0x2FFFFFFF; log_addr++){
-		first_index = (log_addr >> 20)<< 2;
-		second_index = ((log_addr >> 12) & 0xFF)<<2;
-		// on garde seulement les 12 derniers bits
-		//page_index = log_addr & 4096;
-		table2 = (uint32_t*)(((uint32_t)table1[first_index])&0xFFFFFC00);
-		table2[second_index] = log_addr & device_flags;
+		first_level_index = log_addr >> 20;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
+		first_level_descriptor = *(first_level_descriptor_address);
+		
+		second_level_index = (log_addr >> 12) & 0xFF;
+		second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00);
+		second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
+		*second_level_descriptor_address = (log_addr & 0xFFFFF000) & device_flags;
 	}
-	return (unsigned int)table1;
+	return (unsigned int)table_base;
 	
 }
 

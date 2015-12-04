@@ -34,7 +34,5 @@ void user_process_3()
 
 void kmain()
 {
-	int a = 0;
 	sched_init();
-	uint32_t pa = vmem_translate(&a,struct pcb_s* current_process);
 }
