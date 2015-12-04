@@ -27,6 +27,8 @@ struct pcb_s
 	
 	struct pcb_s* next;
 	struct pcb_s* previous;
+	
+	uint32_t** page_table;
 };
 
 void sched_init();

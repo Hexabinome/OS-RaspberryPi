@@ -13,15 +13,18 @@ static struct pcb_s kmain_process;
 
 void sched_init()
 {
-	kheap_init();
-	timer_init();
+
 
 	current_process = &kmain_process;
 	current_process->next = current_process;
 	current_process->previous = current_process;
 	current_process->status = RUNNING;
-
-	ENABLE_IRQ();
+	#if VMEM
+		vmem_init();
+	#else
+		kheap_init();
+	#endif
+	
 }
 
 static void start_current_process()
