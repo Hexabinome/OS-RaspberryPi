@@ -22,8 +22,9 @@ unsigned int init_kern_translation_table(void)
 	uint32_t** table_base =(uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
 	
 	uint32_t i = 0;
-	for(i=0; i<FIRST_LVL_TT_COUN; i++){
-		table_base[i] = (uint32_t*)kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+	for(i=0; i < FIRST_LVL_TT_COUN; i++)
+	{
+		table_base[i] = (uint32_t*) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
 	}
 	uint32_t* second_level_table;
 	
