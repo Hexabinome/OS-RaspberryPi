@@ -17,10 +17,6 @@ b *kmain
 b *irq_handler
 b *sys_exit
 
-b *user_process_1
-b *user_process_2
-b *user_process_3
-
 source utils.gdb
 
 continue

@@ -5,6 +5,7 @@
 #include "hw.h"
 #include "asm_tools.h"
 #include "syscall.h"
+#include "vmem.h"
 
 #define STACK_SIZE 10000
 
@@ -13,17 +14,18 @@ static struct pcb_s kmain_process;
 
 void sched_init()
 {
-
-
+	// Init process data structure
 	current_process = &kmain_process;
 	current_process->next = current_process;
 	current_process->previous = current_process;
 	current_process->status = RUNNING;
-	#if VMEM
-		vmem_init();
-	#else
-		kheap_init();
-	#endif
+	
+	// Init memory
+#if VMEM
+	vmem_init();
+#else
+	kheap_init();
+#endif
 	
 }
 

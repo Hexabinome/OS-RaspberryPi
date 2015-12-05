@@ -1,5 +1,7 @@
-#ifndef __SCHED__
-#define __SCHED__
+#ifndef _SCHED_H
+#define _SCHED_H
+
+#include <stdint.h>
 
 #define NBREG 13
 
@@ -34,4 +36,4 @@ struct pcb_s
 void sched_init();
 void create_process(func_t* entry);
 
-#endif // __SCHED__
+#endif // _SCHED_H
