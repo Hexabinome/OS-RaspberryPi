@@ -26,7 +26,9 @@ void sched_init()
 #else
 	kheap_init();
 #endif
-	
+		
+	timer_init();
+	ENABLE_IRQ();
 }
 
 static void start_current_process()

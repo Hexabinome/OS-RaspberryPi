@@ -1,7 +1,5 @@
 #include "vmem.h"
 #include "kheap.h"
-#include "hw.h" // timer_init
-#include "asm_tools.h" // ENABLE_IRQ
 #include "config.h" // NULL
 
 static unsigned int MMUTABLEBASE; /* Page table address */
@@ -10,19 +8,17 @@ void vmem_init()
 {
 	kheap_init();
 	MMUTABLEBASE = init_kern_translation_table();
-	configure_mmu_C();
-	timer_init();
-	start_mmu_C();
 	
-	ENABLE_IRQ();
+	configure_mmu_C();
+	start_mmu_C();
 }
 
 unsigned int init_kern_translation_table(void)
 {
 	uint32_t** table_base =(uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
 	
-	uint32_t i = 0;
-	for(i=0; i < FIRST_LVL_TT_COUN; i++)
+	uint32_t i;
+	for (i = 0; i < FIRST_LVL_TT_COUN; i++)
 	{
 		table_base[i] = (uint32_t*) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
 	}
@@ -48,7 +44,7 @@ unsigned int init_kern_translation_table(void)
 		first_level_descriptor = *(first_level_descriptor_address);
 		
 		second_level_index = (log_addr >> 12) & 0xFF;
-		second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00);
+		second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
 		second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
 		*second_level_descriptor_address = (log_addr & 0xFFFFF000) & 0b000001010010;
 	}
@@ -101,7 +97,11 @@ void start_mmu_C()
 	__asm volatile("mcr p15, 0, %[data], c8, c7, 0" : : [data] "r" (0));
 	
 	/* Write control register */
+	// doc at http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0333h/I1031142.html
 	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
+	
+	/* Activate cache */ // TODO : activer ?
+	//__asm volatile("mcr p15, 0, r0, c7, c7, 0");
 }
 
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
