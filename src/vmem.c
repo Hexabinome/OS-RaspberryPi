@@ -1,7 +1,7 @@
 #include "vmem.h"
 #include "kheap.h"
 #include "config.h" // NULL
-#include "sched.h"
+
 
 static unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
