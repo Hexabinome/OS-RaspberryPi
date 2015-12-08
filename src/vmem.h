@@ -5,6 +5,7 @@
 #include "sched.h"
 
 #define PAGE_SIZE 4096
+#define FRAME_TABLE_SIZE 135168
 
 #define FIRST_LVL_TT_COUN 4096 // Number of table 1 entries
 #define FIRST_LVL_TT_SIZE 16384
@@ -16,6 +17,7 @@
 
 void vmem_init();
 unsigned int init_kern_translation_table(void);
+uint8_t* init_frame_occupation_table(void);
 
 void configure_mmu_C();
 void start_mmu_C();

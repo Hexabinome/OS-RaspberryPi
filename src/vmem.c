@@ -3,14 +3,19 @@
 #include "config.h" // NULL
 
 static unsigned int MMUTABLEBASE; /* Page table address */
+static uint8_t* frame_table; /* frame occupation table */
 
 void vmem_init()
 {
 	kheap_init();
 	
 	MMUTABLEBASE = init_kern_translation_table();
+	frame_table = init_frame_occupation_table();
+	
 	configure_mmu_C();
 	start_mmu_C();
+	
+	
 }
 
 unsigned int init_kern_translation_table(void)
@@ -67,6 +72,31 @@ unsigned int init_kern_translation_table(void)
 	return (unsigned int)table_base;
 	
 }
+
+uint8_t* init_frame_occupation_table(void)
+{
+	uint8_t* ft = kAlloc(FRAME_TABLE_SIZE);
+	
+	unsigned int i;
+	unsigned int frame_kernel_heap_end = 0x1000000 / 4;
+	unsigned int frame_devices_start = 0x20000000 / 4;
+	unsigned int frame_devices_end = 0x20FFFFFF / 4;
+	
+	for (i = 0; i <= frame_kernel_heap_end; ++i)
+	{
+		ft[i] = 1;
+	}
+	for (; i < frame_devices_start; ++i)
+	{
+		ft[i] = 0;
+	}
+	for (i = frame_devices_start; i <= frame_devices_end; ++i)
+	{
+		ft[i] = 1;
+	}
+	
+	return ft;
+}	
 
 void configure_mmu_C()
 {
