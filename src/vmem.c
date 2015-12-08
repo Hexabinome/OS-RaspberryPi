@@ -1,6 +1,7 @@
 #include "vmem.h"
 #include "kheap.h"
 #include "config.h" // NULL
+#include "sched.h"
 
 static unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
@@ -175,7 +176,7 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 	
 	/* Translation fault */
 	if(! (first_level_descriptor & 0x3)) {
-		return (uint32_t) FORBIDDEN_ADDRESS;
+		return (uint32_t) FORBIDDEN_ADDRESS_TABLE1;
 	}
 	
 	/* Second level descriptor */
@@ -191,4 +192,75 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 	/* Physical address */
 	pa = (second_level_descriptor & 0xFFFFF000) | page_index;
 	return pa;
+}
+
+
+uint8_t* vmem_alloc_for_userland(struct pcb_s* process)
+{
+	uint32_t** table_base;
+	if (process == NULL)
+	{
+		__asm("mrc p15, 0, %[tb], c2, c0, 0" : [tb] "=r"(table_base));
+	}
+	else
+	{
+		table_base = process->page_table;
+	}
+	uint32_t i;
+	uint32_t phys_addr;
+	uint32_t free_page = NULL;
+	//increment by 2^11
+	for(i = 0x1000000; i < 0x1FFFFFFF; i=((i>>12)+1)<<12)
+	{
+		phys_addr = vmem_translate(i, NULL);
+		if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS)
+		{
+			free_page = i;
+			break;
+		}
+		else if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)
+		{
+			table_base[i>>20] = (uint32_t*) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+			free_page = i;
+			break;
+		}
+	}
+	
+	uint32_t j;
+	uint32_t free_frame = NULL;
+	for(j = 0; j < FRAME_TABLE_SIZE; j++)
+	{
+		if(frame_table[j] == 0)
+		{
+			frame_table[j] = 1;
+			free_frame = j*4096;
+			break;
+		}
+	}
+	
+	set_second_table_value(table_base, free_page, free_frame);
+	return (uint8_t*)free_page;
+}
+
+
+void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
+{
+	/* Indexes */
+	uint32_t first_level_index;
+	uint32_t second_level_index;
+	/* Descriptors */
+	uint32_t first_level_descriptor;
+	uint32_t* first_level_descriptor_address;
+	uint32_t* second_level_descriptor_address;
+	uint32_t* second_level_table;
+
+	first_level_index = log_addr >> 20;
+	first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
+	first_level_descriptor = *(first_level_descriptor_address);
+	
+	second_level_index = (log_addr >> 12) & 0xFF;
+	second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
+	second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
+	*second_level_descriptor_address = phy_addr;
+	
 }
