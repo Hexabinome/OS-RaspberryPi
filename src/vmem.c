@@ -23,11 +23,7 @@ unsigned int init_kern_translation_table(void)
 {
 	uint32_t** table_base =(uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
 	
-	uint32_t i;
-	for (i = 0; i < FIRST_LVL_TT_COUN; i++)
-	{
-		table_base[i] = (uint32_t*) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
-	}
+	
 	uint32_t* second_level_table;
 	
 	uint32_t device_flags = 0b010000010110;
@@ -43,6 +39,17 @@ unsigned int init_kern_translation_table(void)
 	uint32_t log_addr;
 	
 	// init kern pages
+	uint32_t first_page = 0;
+	// number of second lvl table to store all devices adress
+	uint32_t nbPage = (uint32_t)(0x1000000/ FRAME_SIZE / SECON_LVL_TT_SIZE);
+	uint32_t i;
+	// alloc table pages for devices
+	for(i = first_page; i < first_page+nbPage; ++i) 
+	{
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (i << 2));
+		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+	}
+	
 	for (log_addr = 0; log_addr < 0x1000000; log_addr++) // TODO __kernel_heap_end__ ???
 	{
 		first_level_index = log_addr >> 20;
@@ -57,6 +64,15 @@ unsigned int init_kern_translation_table(void)
 	}
 	
 	// init devices pages
+	first_page = 0x20000000 >> 20;
+	// number of second lvl table to store all devices adress
+	nbPage = (uint32_t)(0xFFFFFF/ FRAME_SIZE / SECON_LVL_TT_SIZE);
+	// alloc table pages for devices
+	for(i = first_page; i < first_page+nbPage; ++i) 
+	{
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (i << 2));
+		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+	}
 	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr++)
 	{
 		first_level_index = log_addr >> 20;
@@ -79,11 +95,11 @@ uint8_t* init_frame_occupation_table(void)
 	uint8_t* ft = kAlloc(FRAME_TABLE_SIZE);
 	
 	unsigned int i;
-	unsigned int frame_kernel_heap_end = 0x1000000 / 4;
-	unsigned int frame_devices_start = 0x20000000 / 4;
-	unsigned int frame_devices_end = 0x20FFFFFF / 4;
+	unsigned int frame_kernel_heap_end = 0x1000000 / FRAME_SIZE;
+	unsigned int frame_devices_start = 0x20000000 / FRAME_SIZE;
+	unsigned int frame_devices_end = 0x20FFFFFF / FRAME_SIZE;
 	
-	for (i = 0; i <= frame_kernel_heap_end; ++i)
+	for (i = 0; i < frame_kernel_heap_end; ++i)
 	{
 		ft[i] = 1;
 	}
@@ -175,7 +191,8 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 	first_level_descriptor = *(first_level_descriptor_address);
 	
 	/* Translation fault */
-	if(! (first_level_descriptor & 0x3)) {
+	uint32_t condition = (first_level_descriptor & 0x3);
+	if(! condition ) {
 		return (uint32_t) FORBIDDEN_ADDRESS_TABLE1;
 	}
 	
@@ -195,8 +212,9 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 }
 
 
-uint8_t* vmem_alloc_for_userland(struct pcb_s* process)
+uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 {
+	uint32_t nbPage = (uint32_t)(size/PAGE_SIZE)+1;
 	uint32_t** table_base;
 	if (process == NULL)
 	{
@@ -206,40 +224,68 @@ uint8_t* vmem_alloc_for_userland(struct pcb_s* process)
 	{
 		table_base = process->page_table;
 	}
-	uint32_t i;
+	uint32_t i, j;
+	uint32_t first_page;
 	uint32_t phys_addr;
-	uint32_t free_page = NULL;
+	uint32_t* first_level_descriptor_address;
+	uint32_t consecutive = 0;
+	uint8_t page_free;
 	//increment by 2^11
 	for(i = 0x1000000; i < 0x1FFFFFFF; i=((i>>12)+1)<<12)
 	{
+		consecutive = 1;
 		phys_addr = vmem_translate(i, NULL);
-		if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS)
+		if(!((phys_addr == (uint32_t)FORBIDDEN_ADDRESS) || (phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)))
 		{
-			free_page = i;
-			break;
+			continue;
 		}
-		else if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)
+		for(j = 1; j < nbPage; j++)
 		{
-			table_base[i>>20] = (uint32_t*) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
-			free_page = i;
+			phys_addr = vmem_translate(i+(j<<12), NULL);
+			page_free = (phys_addr == (uint32_t)FORBIDDEN_ADDRESS) || (phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1);
+			// if one page is not free
+			if(!page_free)
+			{
+				consecutive = 0;
+				break;
+			}
+			
+		}
+		if(consecutive)
+		{
+			first_page = i;
 			break;
 		}
 	}
 	
-	uint32_t j;
-	uint32_t free_frame = NULL;
-	for(j = 0; j < FRAME_TABLE_SIZE; j++)
+
+	phys_addr = vmem_translate(first_page, NULL);
+	if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)
 	{
-		if(frame_table[j] == 0)
-		{
-			frame_table[j] = 1;
-			free_frame = j*4096;
-			break;
-		}
+		// alloc new 2nd table page lvl
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | ( (first_page >> 20) << 2));
+		*(first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+		*(first_level_descriptor_address) |= 0b0000000001;
 	}
+
 	
-	set_second_table_value(table_base, free_page, free_frame);
-	return (uint8_t*)free_page;
+	uint32_t free_frame = NULL;
+	for(i = 0; i < nbPage; i++)
+	{
+		for(j = 0; j < FRAME_TABLE_SIZE; j++)
+		{
+			if(frame_table[j] == 0)
+			{
+				frame_table[j] = 1;
+				// find the physical adress of the frame
+				free_frame = j*4096;
+				break;
+			}
+		}
+		//COUILLE ICI, on alloue 1 page en trop
+		set_second_table_value(table_base, first_page + (i<<12), free_frame);
+	}
+	return (uint32_t)first_page;
 }
 
 
@@ -261,6 +307,6 @@ void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t p
 	second_level_index = (log_addr >> 12) & 0xFF;
 	second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
 	second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
-	*second_level_descriptor_address = phy_addr;
+	*second_level_descriptor_address = (phy_addr & 0xFFFFF000) | 0b000001010010;
 	
 }

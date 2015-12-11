@@ -5,6 +5,7 @@
 #include "sched.h"
 
 #define PAGE_SIZE 4096
+#define FRAME_SIZE 4096
 #define FRAME_TABLE_SIZE 135168
 
 #define FIRST_LVL_TT_COUN 4096 // Number of table 1 entries
@@ -23,6 +24,6 @@ void configure_mmu_C();
 void start_mmu_C();
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process);
 
-uint8_t* vmem_alloc_for_userland(struct pcb_s* process);
+uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size);
 void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr);
 #endif // _VMEM_H
