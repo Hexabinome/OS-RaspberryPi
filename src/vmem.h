@@ -25,5 +25,6 @@ void start_mmu_C();
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process);
 
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size);
-void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr);
+void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size);
+
 #endif // _VMEM_H

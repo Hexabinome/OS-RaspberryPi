@@ -13,6 +13,43 @@ static const uint16_t kernel_flags = 0b000001010010;
 static const uint16_t device_flags = 0b010000010110;
 	
 
+static uint32_t** get_table_base(struct pcb_s* process)
+{
+	uint32_t** table_base;
+	if (process == NULL)
+	{
+		__asm("mrc p15, 0, %[tb], c2, c0, 0" : [tb] "=r"(table_base));
+	}
+	else
+	{
+		table_base = process->page_table;
+	}
+	
+	return table_base;
+}
+
+static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
+{
+	/* Indexes */
+	uint32_t first_level_index;
+	uint32_t second_level_index;
+	/* Descriptors */
+	uint32_t first_level_descriptor;
+	uint32_t* first_level_descriptor_address;
+	uint32_t* second_level_descriptor_address;
+	uint32_t* second_level_table;
+
+	first_level_index = log_addr >> 20;
+	first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
+	first_level_descriptor = *(first_level_descriptor_address);
+	
+	second_level_index = (log_addr >> 12) & 0xFF;
+	second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
+	second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
+	*second_level_descriptor_address = (phy_addr & 0xFFFFF000) | kernel_flags;
+	
+}
+
 void vmem_init()
 {
 	kheap_init();
@@ -177,15 +214,7 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 	uint32_t second_level_descriptor;
 	uint32_t* second_level_descriptor_address;
 	
-	if (process == NULL)
-	{
-		__asm("mrc p15, 0, %[tb], c2, c0, 0" : [tb] "=r"(table_base));
-	}
-	else
-	{
-		table_base = (uint32_t) process->page_table;
-	}
-	table_base = table_base & 0xFFFFC000;
+	table_base = get_table_base(process) & 0xFFFFC000;
 	
 	/* Indexes */
 	first_level_index = (va >> 20);
@@ -221,15 +250,8 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 {
 	uint32_t nbPage = (uint32_t)(size/PAGE_SIZE)+1;
-	uint32_t** table_base;
-	if (process == NULL)
-	{
-		__asm("mrc p15, 0, %[tb], c2, c0, 0" : [tb] "=r"(table_base));
-	}
-	else
-	{
-		table_base = process->page_table;
-	}
+	uint32_t** table_base = get_table_base(process);
+	
 	uint32_t i, j;
 	uint32_t first_page;
 	uint32_t phys_addr;
@@ -294,25 +316,14 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 	return (uint32_t)first_page;
 }
 
-
-void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
+void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 {
-	/* Indexes */
-	uint32_t first_level_index;
-	uint32_t second_level_index;
-	/* Descriptors */
-	uint32_t first_level_descriptor;
-	uint32_t* first_level_descriptor_address;
-	uint32_t* second_level_descriptor_address;
-	uint32_t* second_level_table;
-
-	first_level_index = log_addr >> 20;
-	first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
-	first_level_descriptor = *(first_level_descriptor_address);
+	uint32_t** table_base = get_table_base(process);
 	
-	second_level_index = (log_addr >> 12) & 0xFF;
-	second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
-	second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
-	*second_level_descriptor_address = (phy_addr & 0xFFFFF000) | kernel_flags;
+	// Set page table entries to forbidden address
 	
+	
+	// Set, if necessary, first table entry to forbidden table1 address
+	
+	// Set frame occupation to free
 }
