@@ -207,46 +207,50 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 {
-	uint32_t nbPage = (uint32_t)(size/PAGE_SIZE)+1;
 	uint32_t** table_base = get_table_base(process);
+	uint32_t nb_page = (uint32_t)(size/PAGE_SIZE)+1;
 	
-	uint32_t i, j;
+	uint32_t log_addr, i, j;
 	uint32_t first_page;
-	uint32_t phys_addr;
+	uint32_t begin_phys_addr, phys_addr;
 	uint32_t* first_level_descriptor_address;
-	uint32_t consecutive = 0;
-	uint8_t page_free;
-	//increment by 2^11
-	for(i = 0x1000000; i < 0x1FFFFFFF; i=((i>>12)+1)<<12)
+	uint8_t is_consecutive;
+	
+	// Find a free space in logical addresses
+	for(log_addr = 0x1000000; log_addr < 0x1FFFFFFF; log_addr += (1 << 12)) // iterate over each logical address, increment by page size (2^12 = 4096)
 	{
-		consecutive = 1;
-		phys_addr = vmem_translate(i, process);
-		if(!((phys_addr == (uint32_t)FORBIDDEN_ADDRESS) || (phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)))
+		is_consecutive = TRUE;
+		begin_phys_addr = vmem_translate(log_addr, process);
+		// If corresponding physical address is already taken, skip
+		if (begin_phys_addr != (uint32_t) FORBIDDEN_ADDRESS && begin_phys_addr != (uint32_t) FORBIDDEN_ADDRESS_TABLE1)
 		{
 			continue;
 		}
-		for(j = 1; j < nbPage; j++)
+		// If is empty, check if the next (nb_page - 1) pages are also free
+		for (i = 1; i < nb_page; ++i)
 		{
-			phys_addr = vmem_translate(i+(j<<12), process);
-			page_free = (phys_addr == (uint32_t)FORBIDDEN_ADDRESS) || (phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1);
-			// if one page is not free
-			if(!page_free)
+			phys_addr = vmem_translate(log_addr + (i << 12), process);
+			// If one page is not free : not consecutive
+			if (phys_addr != (uint32_t) FORBIDDEN_ADDRESS && phys_addr != (uint32_t) FORBIDDEN_ADDRESS_TABLE1)
 			{
-				consecutive = 0;
+				is_consecutive = FALSE;
 				break;
 			}
 			
 		}
-		if(consecutive)
+		// Only if the right number of pages is free, we exit the search for space
+		if (is_consecutive)
 		{
-			first_page = i;
+			first_page = log_addr;
 			break;
 		}
 	}
 	
+	// TODO if log_addr has exceeded 0x1F FF FF FF : no available memory
+	
 
-	phys_addr = vmem_translate(first_page, process);
-	if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)
+	// If the first empty page is a first level table
+	if (begin_phys_addr == (uint32_t) FORBIDDEN_ADDRESS_TABLE1)
 	{
 		// alloc new 2nd table page lvl
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | ( (first_page >> 20) << 2));
@@ -256,7 +260,7 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 
 	
 	uint32_t free_frame = NULL;
-	for(i = 0; i < nbPage; i++)
+	for(i = 0; i < nb_page; i++)
 	{
 		for(j = 0; j < FRAME_TABLE_SIZE; j++)
 		{
