@@ -8,6 +8,7 @@ then
 	exit 1
 fi
 
+# Use "realpath" or "readlink -f" depending on which one is installed
 if command -v realpath 2>/dev/null
 then
 	GETPATHCMD='realpath'

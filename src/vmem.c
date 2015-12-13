@@ -186,12 +186,14 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 {
 	uint32_t** table_base = get_table_base(process);
 	
+	// Test if first level descriptor is mapped
     uint32_t* first_lvl_desc = get_first_lvl_descriptor(table_base, va);
     if (! ((uint32_t) first_lvl_desc & 0x3))
     {
 		return (uint32_t) FORBIDDEN_ADDRESS_TABLE1;
 	}
 	
+	// Test if second level descriptor is mapped to physical memory
 	uint32_t* second_lvl_desc = get_second_lvl_descriptor_from(get_second_lvl_descriptor_addr_from(first_lvl_desc, va));
 	if (! ((uint32_t) second_lvl_desc & 0x3))
     {
