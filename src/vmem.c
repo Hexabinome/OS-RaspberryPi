@@ -28,7 +28,7 @@ static uint32_t** get_table_base(struct pcb_s* process)
 	return table_base;
 }
 
-void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
+static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
 {
     /* Indexes */
     uint32_t second_level_index;
