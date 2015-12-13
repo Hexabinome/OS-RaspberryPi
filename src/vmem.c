@@ -131,15 +131,15 @@ uint8_t* init_frame_occupation_table(void)
 	
 	for (i = 0; i <= frame_kernel_heap_end; ++i)
 	{
-		ft[i] = 1;
+		ft[i] = FRAME_OCCUPIED;
 	}
 	for (; i < frame_devices_start; ++i)
 	{
-		ft[i] = 0;
+		ft[i] = FRAME_FREE;
 	}
 	for (i = frame_devices_start; i <= frame_devices_end; ++i)
 	{
-		ft[i] = 1;
+		ft[i] = FRAME_OCCUPIED;
 	}
 	
 	return ft;
@@ -258,9 +258,9 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 	{
 		for(j = 0; j < FRAME_TABLE_SIZE; j++)
 		{
-			if(frame_table[j] == 0)
+			if(frame_table[j] == FRAME_FREE)
 			{
-				frame_table[j] = 1;
+				frame_table[j] = FRAME_OCCUPIED;
 				// find the physical adress of the frame
 				free_frame = j*4096;
 				break;
@@ -274,26 +274,46 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 
 void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 {
-	/*uint32_t** table_base = (uint32_t**)( (uint32_t)get_table_base(process) & 0xFFFFC000);
+	uint32_t** table_base = (uint32_t**)( (uint32_t)get_table_base(process) & 0xFFFFC000);
 	
-	uint32_t nb_page = (uint32_t)(size/PAGE_SIZE)+1;
-	uint32_t page_idx, log_addr;
-	// Set page table entries to forbidden address
-	for (page_idx = 0; page_idx < nb_page; ++page_idx)
-	{
-		log_addr = (uint32_t)vAddress + (page_idx << 12);
+	uint32_t* first_lvl_desc_addr = get_first_lvl_descriptor_addr(table_base, (uint32_t) vAddress);
+	uint32_t* first_lvl_desc = get_first_lvl_descriptor_from(first_lvl_desc_addr);
+	
+	uint32_t nb_page = (size/PAGE_SIZE)+1;
+	uint32_t max_log_addr = (uint32_t) vAddress + (nb_page << 12);
+	uint32_t log_addr;
+	// Set second level descriptors to forbidden address & free frame occupation table
+	for (log_addr = (uint32_t) vAddress; log_addr < max_log_addr; log_addr += (1 << 12))
+	{	
+		// Get second level descriptor address
+		uint32_t* second_lvl_desc_addr = get_second_lvl_descriptor_addr_from(first_lvl_desc, log_addr);
 		
-		// get second level table -> get index -> get entry
-		// set entry to forbidden address
+		// Free frame occupation table
+		uint32_t* phy_addr = get_phy_addr_from(get_second_lvl_descriptor_from(second_lvl_desc_addr), log_addr);
+		uint32_t frame_occupation_idx = (uint32_t) phy_addr / (uint32_t)FRAME_SIZE;
+		frame_table[frame_occupation_idx] = FRAME_FREE;
+		
+		// Set entry to forbidden address
+		*second_lvl_desc_addr = (uint32_t)FORBIDDEN_ADDRESS;
 	}
 	
-	uint32_t i;
-	uint8_t is_empty = TRUE;
-	// Set, if empty, first table entry to forbidden table1 address
-	for (i = 0; i < SECON_LVL_TT_COUN; ++i)
-	{
-		// TODO If one of the second level table entries is not a forbidden address, then not empty + break
-	}*/
 	
-	// Set frame occupation to free
+	uint8_t is_empty = TRUE;
+	uint32_t first_second_lvl_desc = (uint32_t) get_second_lvl_descriptor_addr_from(first_lvl_desc, 0);
+	uint32_t last_second_lvl_desc = first_second_lvl_desc + (SECON_LVL_TT_COUN << 12);
+	// Set, if empty, first level descriptor to forbidden table1 address
+	for (log_addr = first_second_lvl_desc; log_addr < last_second_lvl_desc; log_addr += (1 << 12))
+	{
+		uint32_t* second_lvl_desc = get_second_lvl_descriptor_from(get_second_lvl_descriptor_addr_from(first_lvl_desc, log_addr));
+		// If one is not empty, stop
+		if (second_lvl_desc != FORBIDDEN_ADDRESS)
+		{
+			is_empty = FALSE;
+			break;
+		}
+	}
+	if (is_empty)
+	{
+		*first_lvl_desc_addr = (uint32_t)FORBIDDEN_ADDRESS_TABLE1;
+	}
 }

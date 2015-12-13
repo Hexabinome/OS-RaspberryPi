@@ -16,6 +16,9 @@
 #define SECON_LVL_TT_SIZE 1024
 #define SECON_LVL_TT_ALIG 10 // Alignment
 
+#define FRAME_OCCUPIED 1
+#define FRAME_FREE 0
+
 void vmem_init();
 unsigned int init_kern_translation_table(void);
 uint8_t* init_frame_occupation_table(void);
