@@ -1,6 +1,7 @@
 #include "vmem.h"
 #include "kheap.h"
 #include "config.h" // NULL
+#include "vmem_helper.h"
 
 
 static unsigned int MMUTABLEBASE; /* Page table address */
@@ -11,7 +12,6 @@ static const uint32_t kernel_heap_end = 0x1000000; // TODO use __kernel_heap_end
 static const uint8_t first_table_flags = 1; // 0b0000000001
 static const uint16_t kernel_flags = 0b000001010010;
 static const uint16_t device_flags = 0b010000010110;
-	
 
 static uint32_t** get_table_base(struct pcb_s* process)
 {
@@ -28,26 +28,22 @@ static uint32_t** get_table_base(struct pcb_s* process)
 	return table_base;
 }
 
-static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
+void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
 {
-	/* Indexes */
-	uint32_t first_level_index;
-	uint32_t second_level_index;
-	/* Descriptors */
-	uint32_t first_level_descriptor;
-	uint32_t* first_level_descriptor_address;
-	uint32_t* second_level_descriptor_address;
-	uint32_t* second_level_table;
+    /* Indexes */
+    uint32_t second_level_index;
+    /* Descriptors */
+    uint32_t first_level_descriptor;
+    uint32_t* second_level_descriptor_address;
+    uint32_t* second_level_table;
 
-	first_level_index = log_addr >> 20;
-	first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
-	first_level_descriptor = *(first_level_descriptor_address);
-	
-	second_level_index = (log_addr >> 12) & 0xFF;
-	second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
-	second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
-	*second_level_descriptor_address = (phy_addr & 0xFFFFF000) | kernel_flags;
-	
+    first_level_descriptor = (uint32_t) get_first_lvl_descriptor(table_base, log_addr);
+
+    second_level_index = (log_addr >> 12) & 0xFF;
+    second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
+    second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
+    *second_level_descriptor_address = (phy_addr & 0xFFFFF000) | kernel_flags;
+// TODO okay ?
 }
 
 void vmem_init()
@@ -66,15 +62,10 @@ unsigned int init_kern_translation_table(void)
 	// Alloc first table
 	uint32_t** table_base =(uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
 	
-	uint32_t* second_level_table;
-	
-	/* Indexes */
-	uint32_t first_level_index;
-	uint32_t second_level_index;
 	/* Descriptors */
-	uint32_t first_level_descriptor;
+	uint32_t* first_level_descriptor;
 	uint32_t* first_level_descriptor_address;
-	uint32_t* second_level_descriptor_address;
+    uint32_t* second_level_descriptor_address;
 	
 	uint32_t log_addr;
 	
@@ -93,15 +84,13 @@ unsigned int init_kern_translation_table(void)
 	// Fill second level tables
 	for (log_addr = 0; log_addr < kernel_heap_end; log_addr++)
 	{
-		first_level_index = log_addr >> 20;
-		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
-		*(first_level_descriptor_address) |= first_table_flags;
-		first_level_descriptor = *(first_level_descriptor_address);
-		
-		second_level_index = (log_addr >> 12) & 0xFF;
-		second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
-		second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
-		*second_level_descriptor_address = (log_addr & 0xFFFFF000) | kernel_flags;
+        first_level_descriptor_address = get_first_lvl_descriptor_addr(table_base, log_addr);
+        *first_level_descriptor_address |= first_table_flags;
+
+        first_level_descriptor = get_first_lvl_descriptor_from(first_level_descriptor_address);
+
+        second_level_descriptor_address = get_second_lvl_descriptor_addr_from(first_level_descriptor, log_addr);
+        *second_level_descriptor_address = (log_addr & 0xFFFFF000) | kernel_flags;
 	}
 	
 	// ** Init devices pages
@@ -117,18 +106,16 @@ unsigned int init_kern_translation_table(void)
 	}
 	// Fill second level tables
 	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr++)
-	{
-		first_level_index = log_addr >> 20;
-		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_level_index << 2));
-		*(first_level_descriptor_address) |= first_table_flags;
-		first_level_descriptor = *(first_level_descriptor_address);
-		
-		
-		second_level_index = (log_addr >> 12) & 0xFF;
-		second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00);
-		second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
-		*second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
-	}
+    {
+        first_level_descriptor_address = get_first_lvl_descriptor_addr(table_base, log_addr);
+        *first_level_descriptor_address |= first_table_flags;
+
+        first_level_descriptor = get_first_lvl_descriptor_from(first_level_descriptor_address);
+
+        second_level_descriptor_address = get_second_lvl_descriptor_addr_from(first_level_descriptor, log_addr);
+        *second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
+    }
+
 	return (unsigned int)table_base;
 	
 }
@@ -197,53 +184,22 @@ void start_mmu_C()
 
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 {
-	uint32_t pa; /* The result */
+	uint32_t** table_base = get_table_base(process);
 	
-	/* 1st and 2nd table addresses */
-	uint32_t table_base;
-	uint32_t second_level_table;
-	
-	/* Indexes */
-	uint32_t first_level_index;
-	uint32_t second_level_index;
-	uint32_t page_index;
-	
-	/* Descriptors */
-	uint32_t first_level_descriptor;
-	uint32_t* first_level_descriptor_address;
-	uint32_t second_level_descriptor;
-	uint32_t* second_level_descriptor_address;
-	
-	table_base = get_table_base(process) & 0xFFFFC000;
-	
-	/* Indexes */
-	first_level_index = (va >> 20);
-	second_level_index = ((va << 12) >> 24);
-	page_index = (va & 0x00000FFF);
-	
-	/* First level descriptor */
-	first_level_descriptor_address = (uint32_t*) (table_base | (first_level_index << 2));
-	first_level_descriptor = *(first_level_descriptor_address);
-	
-	/* Translation fault */
-	uint32_t condition = (first_level_descriptor & 0x3);
-	if(! condition ) {
+    uint32_t* first_lvl_desc = get_first_lvl_descriptor(table_base, va);
+    if (! ((uint32_t) first_lvl_desc & 0x3))
+    {
 		return (uint32_t) FORBIDDEN_ADDRESS_TABLE1;
 	}
 	
-	/* Second level descriptor */
-	second_level_table = first_level_descriptor & 0xFFFFFC00;
-	second_level_descriptor_address = (uint32_t*) (second_level_table | (second_level_index << 2));
-	second_level_descriptor = *((uint32_t*) second_level_descriptor_address);
-	
-	/* Translation fault */
-	if (!(second_level_descriptor & 0x3)) {
+	uint32_t* second_lvl_desc = get_second_lvl_descriptor_from(get_second_lvl_descriptor_addr_from(first_lvl_desc, va));
+	if (! ((uint32_t) second_lvl_desc & 0x3))
+    {
 		return (uint32_t) FORBIDDEN_ADDRESS;
 	}
 	
-	/* Physical address */
-	pa = (second_level_descriptor & 0xFFFFF000) | page_index;
-	return pa;
+	
+    return (uint32_t) get_phy_addr_from(second_lvl_desc, va);
 }
 
 
@@ -262,14 +218,14 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 	for(i = 0x1000000; i < 0x1FFFFFFF; i=((i>>12)+1)<<12)
 	{
 		consecutive = 1;
-		phys_addr = vmem_translate(i, NULL);
+		phys_addr = vmem_translate(i, process);
 		if(!((phys_addr == (uint32_t)FORBIDDEN_ADDRESS) || (phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)))
 		{
 			continue;
 		}
 		for(j = 1; j < nbPage; j++)
 		{
-			phys_addr = vmem_translate(i+(j<<12), NULL);
+			phys_addr = vmem_translate(i+(j<<12), process);
 			page_free = (phys_addr == (uint32_t)FORBIDDEN_ADDRESS) || (phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1);
 			// if one page is not free
 			if(!page_free)
@@ -287,7 +243,7 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 	}
 	
 
-	phys_addr = vmem_translate(first_page, NULL);
+	phys_addr = vmem_translate(first_page, process);
 	if(phys_addr == (uint32_t)FORBIDDEN_ADDRESS_TABLE1)
 	{
 		// alloc new 2nd table page lvl
@@ -318,12 +274,26 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 
 void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 {
-	uint32_t** table_base = get_table_base(process);
+	/*uint32_t** table_base = (uint32_t**)( (uint32_t)get_table_base(process) & 0xFFFFC000);
 	
+	uint32_t nb_page = (uint32_t)(size/PAGE_SIZE)+1;
+	uint32_t page_idx, log_addr;
 	// Set page table entries to forbidden address
+	for (page_idx = 0; page_idx < nb_page; ++page_idx)
+	{
+		log_addr = (uint32_t)vAddress + (page_idx << 12);
+		
+		// get second level table -> get index -> get entry
+		// set entry to forbidden address
+	}
 	
-	
-	// Set, if necessary, first table entry to forbidden table1 address
+	uint32_t i;
+	uint8_t is_empty = TRUE;
+	// Set, if empty, first table entry to forbidden table1 address
+	for (i = 0; i < SECON_LVL_TT_COUN; ++i)
+	{
+		// TODO If one of the second level table entries is not a forbidden address, then not empty + break
+	}*/
 	
 	// Set frame occupation to free
 }

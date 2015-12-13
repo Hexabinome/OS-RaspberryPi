@@ -2,6 +2,8 @@
 #define _CONFIG_H
 
 #define NULL 0
+#define TRUE 1
+#define FALSE 0
 
 #define SERIAL_PRINT 1
 #define RPI 0

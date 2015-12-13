@@ -31,8 +31,6 @@ commands
   continue
 end
 
-
-
 break kmain-pagination.c:17
 commands
   p/x res
