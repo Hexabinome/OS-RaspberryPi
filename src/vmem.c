@@ -28,6 +28,11 @@ static uint32_t** get_table_base(struct pcb_s* process)
 	return table_base;
 }
 
+static uint8_t is_forbidden_address(uint32_t addr)
+{
+	return !(addr & 0x3);
+}
+
 static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
 {
     /* Indexes */
@@ -188,14 +193,14 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 	
 	// Test if first level descriptor is mapped
     uint32_t* first_lvl_desc = get_first_lvl_descriptor(table_base, va);
-    if (! ((uint32_t) first_lvl_desc & 0x3))
+    if (is_forbidden_address((uint32_t) first_lvl_desc))
     {
 		return (uint32_t) FORBIDDEN_ADDRESS_TABLE1;
 	}
 	
 	// Test if second level descriptor is mapped to physical memory
 	uint32_t* second_lvl_desc = get_second_lvl_descriptor_from(get_second_lvl_descriptor_addr_from(first_lvl_desc, va));
-	if (! ((uint32_t) second_lvl_desc & 0x3))
+	if (is_forbidden_address((uint32_t) second_lvl_desc))
     {
 		return (uint32_t) FORBIDDEN_ADDRESS;
 	}
@@ -208,16 +213,19 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 {
 	uint32_t** table_base = get_table_base(process);
-	uint32_t nb_page = (uint32_t)(size/PAGE_SIZE)+1;
+	uint32_t nb_page = (uint32_t)(size/FRAME_SIZE)+1;
 	
 	uint32_t log_addr, i, j;
-	uint32_t first_page;
+	uint32_t first_page, last_page;
+	uint32_t* first_page_table;
+	uint32_t* last_page_table;
 	uint32_t begin_phys_addr, phys_addr;
 	uint32_t* first_level_descriptor_address;
 	uint8_t is_consecutive;
 	
 	// Find a free space in logical addresses
 	for(log_addr = 0x1000000; log_addr < 0x1FFFFFFF; log_addr += (1 << 12)) // iterate over each logical address, increment by page size (2^12 = 4096)
+	// TODO iterate after devices range (cuz logical address)
 	{
 		is_consecutive = TRUE;
 		begin_phys_addr = vmem_translate(log_addr, process);
@@ -242,22 +250,26 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 		if (is_consecutive)
 		{
 			first_page = log_addr;
+			first_page_table = get_first_lvl_descriptor_addr(table_base, first_page);
+			last_page = log_addr + ((nb_page-1) << 12);
+			last_page_table = get_first_lvl_descriptor_addr(table_base, last_page);
 			break;
 		}
 	}
 	
 	// TODO if log_addr has exceeded 0x1F FF FF FF : no available memory
-	
+	 
 
-	// If the first empty page is a first level table
-	if (begin_phys_addr == (uint32_t) FORBIDDEN_ADDRESS_TABLE1)
+	// Iterate over each table 1 address, to find if the table needs to be allocated
+	for (first_level_descriptor_address = first_page_table; first_level_descriptor_address <= last_page_table; first_level_descriptor_address += (1 << 2))
 	{
-		// alloc new 2nd table page lvl
-		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | ( (first_page >> 20) << 2));
-		*(first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
-		*(first_level_descriptor_address) |= first_table_flags;
+		if (is_forbidden_address(*first_level_descriptor_address))
+		{
+			// alloc new 2nd table page lvl
+			*(first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+			*(first_level_descriptor_address) |= first_table_flags;
+		}
 	}
-
 	
 	uint32_t free_frame = NULL;
 	for(i = 0; i < nb_page; i++)
@@ -285,7 +297,7 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 	uint32_t* first_lvl_desc_addr = get_first_lvl_descriptor_addr(table_base, (uint32_t) vAddress);
 	uint32_t* first_lvl_desc = get_first_lvl_descriptor_from(first_lvl_desc_addr);
 	
-	uint32_t nb_page = (size/PAGE_SIZE)+1;
+	uint32_t nb_page = (size/FRAME_SIZE)+1;
 	uint32_t max_log_addr = (uint32_t) vAddress + (nb_page << 12);
 	uint32_t log_addr;
 	// Set second level descriptors to forbidden address & free frame occupation table
@@ -300,19 +312,19 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 		frame_table[frame_occupation_idx] = FRAME_FREE;
 		
 		// Set entry to forbidden address
-		*second_lvl_desc_addr = (uint32_t)FORBIDDEN_ADDRESS;
+		*second_lvl_desc_addr = 0;
 	}
 	
-	
+	// TODO free all implicated table2
 	uint8_t is_empty = TRUE;
-	uint32_t first_second_lvl_desc = (uint32_t) get_second_lvl_descriptor_addr_from(first_lvl_desc, 0);
-	uint32_t last_second_lvl_desc = first_second_lvl_desc + (SECON_LVL_TT_COUN << 12);
+	uint32_t begin_second_lvl_desc = (uint32_t) get_second_lvl_descriptor_addr_from(first_lvl_desc, 0);
+	uint32_t last_second_lvl_desc = begin_second_lvl_desc + ((SECON_LVL_TT_COUN-1) * 32);
 	// Set, if empty, first level descriptor to forbidden table1 address
-	for (log_addr = first_second_lvl_desc; log_addr < last_second_lvl_desc; log_addr += (1 << 12))
+	for (log_addr = begin_second_lvl_desc; log_addr < last_second_lvl_desc; log_addr += (1 << 12))
 	{
-		uint32_t* second_lvl_desc = get_second_lvl_descriptor_from(get_second_lvl_descriptor_addr_from(first_lvl_desc, log_addr));
+		uint32_t* second_lvl_desc_addr = get_second_lvl_descriptor_addr_from(first_lvl_desc, log_addr);
 		// If one is not empty, stop
-		if (second_lvl_desc != FORBIDDEN_ADDRESS)
+		if (!is_forbidden_address(*second_lvl_desc_addr))
 		{
 			is_empty = FALSE;
 			break;
@@ -320,6 +332,7 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 	}
 	if (is_empty)
 	{
+		kFree((uint8_t*) first_lvl_desc_addr, SECON_LVL_TT_SIZE);
 		*first_lvl_desc_addr = (uint32_t)FORBIDDEN_ADDRESS_TABLE1;
 	}
 }
