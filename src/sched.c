@@ -23,6 +23,9 @@ void sched_init()
 	current_process->next = current_process;
 	current_process->previous = current_process;
 	current_process->status = RUNNING;
+	current_process->priority = 1;
+
+
 
 	ENABLE_IRQ();
 }
@@ -56,6 +59,33 @@ void create_process(func_t* entry)
 
 	// Initial status
 	process->status = WAITING;
+}
+
+void create_process_with_fix_priority(func_t* entry, int priority)
+{
+		struct pcb_s* process = (struct pcb_s*)kAlloc(sizeof(struct pcb_s));
+	process->entry = entry;
+	process->lr_svc = (uint32_t)&start_current_process;
+
+	// Allocate stack
+	process->sp_user = (uint32_t*)kAlloc(STACK_SIZE) + STACK_SIZE;
+
+	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
+
+	// Put the next process at the end of the list
+	struct pcb_s* lastProcess = current_process;
+	while (lastProcess->next != &kmain_process)
+	{
+		lastProcess = lastProcess->next;
+	}
+	lastProcess->next = process;
+	process->previous = lastProcess;
+	process->next = &kmain_process;
+
+	// Initial status
+	process->status = WAITING;
+	process->priority = priority;
+
 }
 
 static void free_process(struct pcb_s* process)
@@ -93,18 +123,8 @@ static void elect()
 }
 * */
 
-
-static void electRandom()
+static void electFixPriority()
 {
-
-	//On genere le nombre aléatoire entre min et max int.
-	int randomNb = getRandomNb();
-			
-	uint64_t division = divide(randomNb, (*ptr));
-	int moduloAide = division * (*ptr);
-	
-	//On calcule un nombre d'iteration a partir du randomNB (sachant que c'est pas une numero entro 0 et 1 mais entre min int et max int)
-	int randomIteration = randomNb - moduloAide;
 		
 	// Delete current if terminated (so a terminated process does not wait at the end of list)
 	if(current_process->status == TERMINATED)
@@ -115,35 +135,109 @@ static void electRandom()
 		
 		struct pcb_s* processToDelete = current_process;
 		
-		int i=0;
+		struct pcb_s* processToChoose = current_process;
 		
 		// on choisi le processus suivant 'randomIteration' fois
-		for(i=0;i<randomIteration;i++) 
+		for(int i=0; i<(*ptr);i++)
 		{
 			current_process->previous->next = current_process->next;
 			current_process->next->previous = current_process->previous;
 			
 			current_process = current_process->next;
+
+			if(processToChoose->priority < current_process->priority)
+			{
+				processToChoose = current_process;
+			}
+
+			
 		}
+
+		current_process = processToChoose;
 		
 		free_process(processToDelete);
 		*ptr = *ptr-1;
 	}
 	else
 	{
+		struct pcb_s* processToChoose = current_process;
 		current_process->status = WAITING;
-		int j=0;
-		for(j=0;j<randomIteration;j++)
+
+		for(int i=0; i<(*ptr);i++)
 		{
 			current_process = current_process->next;
+
+			if(processToChoose->priority < current_process->priority) {
+
+				processToChoose = current_process;
+			}
 		}
+
+		current_process = processToChoose;
 	}
 
 	if (current_process->status == TERMINATED)
-		electRandom(); // Elect the next one, and delete the current one
+		electFixPriority(); // Elect the next one, and delete the current one
 	else
 		current_process->status = RUNNING; // Else, this one is now running
 }
+
+
+
+
+
+
+// Choose one proces in the process list
+// static void electRandom()
+// {
+
+// 	//On genere le nombre aléatoire entre min et max int.
+// 	int randomNb = getRandomNb();
+			
+// 	uint64_t division = divide(randomNb, (*ptr));
+// 	int moduloAide = division * (*ptr);
+	
+// 	//On calcule un nombre d'iteration a partir du randomNB (sachant que c'est pas une numero entro 0 et 1 mais entre min int et max int)
+// 	int randomIteration = randomNb - moduloAide;
+		
+// 	// Delete current if terminated (so a terminated process does not wait at the end of list)
+// 	if(current_process->status == TERMINATED)
+// 	{
+// 		// If it is the last process
+// 		if (current_process == current_process->next && current_process == current_process->previous)
+// 			terminate_kernel();
+		
+// 		struct pcb_s* processToDelete = current_process;
+		
+// 		int i=0;
+		
+// 		// on choisi le processus suivant 'randomIteration' fois
+// 		for(i=0;i<randomIteration;i++) 
+// 		{
+// 			current_process->previous->next = current_process->next;
+// 			current_process->next->previous = current_process->previous;
+			
+// 			current_process = current_process->next;
+// 		}
+		
+// 		free_process(processToDelete);
+// 		*ptr = *ptr-1;
+// 	}
+// 	else
+// 	{
+// 		current_process->status = WAITING;
+// 		int j=0;
+// 		for(j=0;j<randomIteration;j++)
+// 		{
+// 			current_process = current_process->next;
+// 		}
+// 	}
+
+// 	if (current_process->status == TERMINATED)
+// 		electRandom(); // Elect the next one, and delete the current one
+// 	else
+// 		current_process->status = RUNNING; // Else, this one is now running
+// }
 
 
 void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
@@ -196,7 +290,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	current_process->lr_svc = sp[NBREG];
 
 	// Elects new current process
-	electRandom();
+	electFixPriority();
 
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)
@@ -260,7 +354,8 @@ static void context_load_from_pcb(uint32_t* sp) // Points to the beginning of pr
 static void handle_irq(uint32_t* sp)
 {
 	context_save_to_pcb(sp);
-	electRandom();
+	// Elects new current process	
+	electFixPriority();
 	context_load_from_pcb(sp);
 }
 

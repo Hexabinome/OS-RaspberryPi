@@ -59,11 +59,19 @@ void kmain()
 {
 	sched_init();
 	
-	create_process((func_t*)&user_process_1);	
-	create_process((func_t*)&user_process_2);
-	create_process((func_t*)&user_process_3);
-	create_process((func_t*)&user_process_4);
-	create_process((func_t*)&user_process_5);
+	// create_process((func_t*)&user_process_1);	
+	// create_process((func_t*)&user_process_2);
+	// create_process((func_t*)&user_process_3);
+	// create_process((func_t*)&user_process_4);
+	// create_process((func_t*)&user_process_5);
+
+	create_process_with_fix_priority((func_t*)&user_process_1, 1);	
+	create_process_with_fix_priority((func_t*)&user_process_2, 1);
+	create_process_with_fix_priority((func_t*)&user_process_3, 1);
+	create_process_with_fix_priority((func_t*)&user_process_4, 1);
+	create_process_with_fix_priority((func_t*)&user_process_5, 3);
+
+	
 	/*
 	create_process((func_t*)&user_process_6);
 	create_process((func_t*)&user_process_7);
