@@ -138,23 +138,19 @@ static void electFixPriority()
 		
 		struct pcb_s* processToDelete = current_process;
 		
-		struct pcb_s* processToChoose = current_process;
+		struct pcb_s* processToChoose = current_process->next;
 		
+		current_process->previous->next = current_process->next;
+		current_process->next->previous = current_process->previous;
+
 		// on choisi le processus suivant 'randomIteration' fois
 		for(int i=0; i<(nbProcess);i++)
 		{
-			current_process->previous->next = current_process->next;
-			current_process->next->previous = current_process->previous;
-			
 			current_process = current_process->next;
-
-
-			if(processToChoose->priority <= current_process->priority)
+			if(processToChoose->priority < current_process->priority)
 			{
 				processToChoose = current_process;
 			}
-
-			
 		}
 
 		current_process = processToChoose;
@@ -215,11 +211,14 @@ static void electFixPriority()
 		
 // 		int i=0;
 		
+//		// on enleve le maillon de la chaine		
+// 		current_process->previous->next = current_process->next;
+// 		current_process->next->previous = current_process->previous;
+
 // 		// on choisi le processus suivant 'randomIteration' fois
 // 		for(i=0;i<randomIteration;i++) 
 // 		{
-// 			current_process->previous->next = current_process->next;
-// 			current_process->next->previous = current_process->previous;
+// 			
 			
 // 			current_process = current_process->next;
 // 		}
