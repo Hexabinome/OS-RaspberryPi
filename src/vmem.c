@@ -262,7 +262,9 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 	 
 
 	// Iterate over each table 1 address, to find if the table needs to be allocated
-	for (first_level_descriptor_address = first_page_table; first_level_descriptor_address <= last_page_table; first_level_descriptor_address += (1 << 2))
+	for (first_level_descriptor_address = first_page_table;
+		first_level_descriptor_address <= last_page_table;
+		first_level_descriptor_address += 1)
 	{
 		if (is_forbidden_address(*first_level_descriptor_address))
 		{
