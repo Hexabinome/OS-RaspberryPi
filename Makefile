@@ -19,8 +19,7 @@ CFLAGS=-Wall -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-poi
 COMMON_FLAGS=-mcpu=arm1176jzf-s
 
 # Object files (excluding kmain)
-OBJECTS=$(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
-
+OBJECTS=build/tune.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
 
@@ -39,6 +38,22 @@ endif
 
 build:
 	mkdir -p build
+
+#Compilation du fichier .wav
+build/tune.o : sounds/tune.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+build/tune1.o : sounds/B4.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+build/tune2.o : sounds/C1_1.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+build/tune3.o : sounds/D_4.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+build/tune4.o : sounds/E1.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+build/tune5.o : sounds/F3.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+build/tune6.o : sounds/G6.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
 
 # compilation C vers ELF
 build/%.o: src/%.c $(wildcard src/*.h) | build

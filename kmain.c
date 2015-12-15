@@ -1,61 +1,51 @@
 #include "syscall.h"
 #include "sched.h"
 #include "util.h"
+#include "pwm.h"
 
 #define NB_PROCESS 5
 
-
-
 void user_process_1()
 {
-	int v1 = 5;
-	while (v1 != 4)
+	for(;;)
 	{
-		v1++;
+		playSound(1);
 	}
-	v1++;
 }
 
 void user_process_2()
 {
-	int v2 = -12;
-	while (v2 != 3)
+	for(;;)
 	{
-		v2 -= 1;
+		playSound(2);
 	}
-	v2++;
 }
 
 void user_process_3()
 {
-	int v3 = 0;
-	while (v3 != -1)
+	for(;;)
 	{
-		v3 += 1;
+		playSound(3);
 	}
-	v3++;
 }
 void user_process_4()
 {
-	int v1 = 5;
-	while (v1 != 4)
+	for(;;)
 	{
-		v1++;
+		playSound(4);
 	}
-	v1++;
 }
 void user_process_5()
 {
-	int v1 = 5;
-	while (v1 != 4)
+	for(;;)
 	{
-		v1++;
+		playSound(5);
 	}
-	v1++;
 }
 
 void kmain()
 {
+	audio_init();
 	sched_init();
 	
 	// create_process((func_t*)&user_process_1);	
