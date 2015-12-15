@@ -242,8 +242,8 @@ define assert_results
   set $ok *= ($27 == 0xfffffff0)
   set $ok *= ($28 == 0x1005000)
 
-  set $ok *= ($29 == kFree + 4)
-  set $ok *= ($30 == kFree + 4)
+  set $ok *= ($29 == kFree + 16)
+  set $ok *= ($30 == kFree + 16)
   set $ok *= ($31 == 0xfffffff1)
   set $ok *= ($32 == 0xfffffff1)
   set $ok *= ($33 == 0xfffffff1)

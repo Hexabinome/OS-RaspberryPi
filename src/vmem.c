@@ -316,9 +316,6 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 {
 	uint32_t** table_base = (uint32_t**)( (uint32_t)get_table_base(process) & 0xFFFFC000);
 	
-	uint32_t* first_lvl_desc_addr = get_first_lvl_descriptor_addr(table_base, (uint32_t) vAddress);
-	uint32_t* first_lvl_desc = get_first_lvl_descriptor_from(first_lvl_desc_addr);
-	
 	uint32_t nb_page = (size/FRAME_SIZE)+1;
 	uint32_t max_log_addr = (uint32_t) vAddress + (nb_page << 12);
 	uint32_t log_addr;
@@ -326,7 +323,7 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 	for (log_addr = (uint32_t) vAddress; log_addr < max_log_addr; log_addr += (1 << 12))
 	{	
 		// Get second level descriptor address
-		uint32_t* second_lvl_desc_addr = get_second_lvl_descriptor_addr_from(first_lvl_desc, log_addr);
+		uint32_t* second_lvl_desc_addr = get_second_lvl_descriptor_addr(table_base, log_addr);
 		
 		// Free frame occupation table
 		uint32_t* phy_addr = get_phy_addr_from(get_second_lvl_descriptor_from(second_lvl_desc_addr), log_addr);
@@ -344,11 +341,12 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 
 	uint32_t* curr_first_lvl_desc;
 	uint32_t* curr_first_lvl_desc_addr;
+	uint32_t* first_lvl_desc_addr = get_first_lvl_descriptor_addr(table_base, (uint32_t) vAddress);
 	uint32_t* last_first_lvl_desc_addr = get_first_lvl_descriptor_addr(table_base, (uint32_t) vAddress + ((nb_page-1) << 12));
 	// Iterate over each table 2 implicated this operation (each table which might be freed)
 	for (curr_first_lvl_desc_addr = first_lvl_desc_addr;
 			curr_first_lvl_desc_addr <= last_first_lvl_desc_addr;
-			curr_first_lvl_desc_addr += (1 << 2))
+			curr_first_lvl_desc_addr += 1)
 	{
 		curr_first_lvl_desc = get_first_lvl_descriptor_from(curr_first_lvl_desc_addr);
 		if (is_table2_free(curr_first_lvl_desc))
