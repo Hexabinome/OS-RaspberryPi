@@ -11,7 +11,9 @@ enum SYSCALLS
 	GETTIME,
 	YIELDTO,
 	YIELD,
-	EXIT
+	EXIT,
+	MMAP,
+	MUNMAP
 };
 
 void sys_reboot()
@@ -107,6 +109,30 @@ void sys_exit(int status)
 
 void do_sys_exit(uint32_t* status); // implemented in sched.c
 
+void* sys_mmap(unsigned int size)
+{
+	__asm("MOV r1, %0": : "r"(size));
+	__asm("MOV r0, %0": : "r"(MMAP));
+	__asm("SWI #0");
+	
+	uint8_t* allocated_mem;
+	__asm("MOV %0, r0" : "=r"(allocated_mem));
+
+	return allocated_mem;
+}
+
+void do_sys_mmap(uint32_t* size); // implemented in vmem.c
+
+void sys_munmap(void* addr, unsigned int size)
+{
+	__asm("MOV r1, %0": : "r"(addr));
+	__asm("MOV r2, %0": : "r"(size));
+	__asm("MOV r0, %0": : "r"(MUNMAP));
+	__asm("SWI #0");
+}
+
+void do_sys_munmap(uint32_t* addr); // implemented in vmem.c
+
 void __attribute__((naked)) swi_handler()
 {
 	__asm("stmfd sp!, {r0-r12, lr}");
@@ -138,6 +164,12 @@ void __attribute__((naked)) swi_handler()
 			break;
 		case EXIT:
 			do_sys_exit(sp);
+			break;
+		case MMAP:
+			do_sys_mmap(sp);
+			break;
+		case MUNMAP:
+			do_sys_munmap(sp);
 			break;
 		default:
 			PANIC();

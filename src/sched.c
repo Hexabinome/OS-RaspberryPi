@@ -11,9 +11,10 @@
 #define STACK_SIZE 10000
 
 // pointeur pointant vers le nbProcess de kmain
-extern int* ptr;
+int nb = 1;
+int* ptr = &nb;
 
-static struct pcb_s* current_process;
+struct pcb_s* current_process;
 static struct pcb_s kmain_process; 
 
 void sched_init()
@@ -99,7 +100,7 @@ static void elect()
 		current_process->status = RUNNING; // Else, this one is now running
 }
 
-static void electRandom()
+/*static void electRandom()
 {
 
 	//On genere le nombre aléatoire entre min et max int.
@@ -148,7 +149,7 @@ static void electRandom()
 		electRandom(); // Elect the next one, and delete the current one
 	else
 		current_process->status = RUNNING; // Else, this one is now running
-}
+}*/
 
 
 void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
@@ -201,7 +202,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	current_process->lr_svc = sp[NBREG];
 
 	// Elects new current process
-	electRandom();
+	elect();
 
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)

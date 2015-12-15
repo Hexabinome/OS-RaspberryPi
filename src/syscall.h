@@ -11,5 +11,7 @@ uint64_t sys_gettime();
 void sys_yieldto(struct pcb_s* dest);
 void sys_yield();
 void sys_exit(int status);
+void* sys_mmap(unsigned int size);
+void sys_munmap(void* addr, unsigned int size);
 
 #endif // __SYSCALL__
