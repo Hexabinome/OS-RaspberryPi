@@ -158,7 +158,11 @@ static void electDynamicPriority()
 		}
 
 		current_process = processToChoose;
-		current_process->priority -= 1;
+		// to avoid a negativ priority
+		if (current_process->priority > 0)
+		{
+			current_process->priority -= 1;
+		}
 		
 		free_process(processToDelete);
 		nbProcess = nbProcess-1;
@@ -182,7 +186,11 @@ static void electDynamicPriority()
 		}
 
 		current_process = processToChoose;
-		current_process->priority -= 1;
+		// to avoid a negativ priority
+		if (current_process->priority > 0)
+		{
+			current_process->priority -= 1;
+		}
 	}
 
 	if (current_process->status == TERMINATED)
