@@ -4,8 +4,7 @@
 
 #define NB_PROCESS 5
 
-static int nbProcess = 5;
-int* ptr = &nbProcess;
+
 
 void user_process_1()
 {

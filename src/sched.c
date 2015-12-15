@@ -7,9 +7,10 @@
 #include "syscall.h"
 #include "randomGenerateur.h"
 
-extern int* ptr;
 
 #define STACK_SIZE 10000
+
+int nbProcess;
 
 static struct pcb_s* current_process;
 static struct pcb_s kmain_process;
@@ -59,11 +60,12 @@ void create_process(func_t* entry)
 
 	// Initial status
 	process->status = WAITING;
+	nbProcess += 1;
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
 {
-		struct pcb_s* process = (struct pcb_s*)kAlloc(sizeof(struct pcb_s));
+	struct pcb_s* process = (struct pcb_s*)kAlloc(sizeof(struct pcb_s));
 	process->entry = entry;
 	process->lr_svc = (uint32_t)&start_current_process;
 
@@ -85,6 +87,7 @@ void create_process_with_fix_priority(func_t* entry, int priority)
 	// Initial status
 	process->status = WAITING;
 	process->priority = priority;
+	nbProcess += 1;
 
 }
 
@@ -138,14 +141,15 @@ static void electFixPriority()
 		struct pcb_s* processToChoose = current_process;
 		
 		// on choisi le processus suivant 'randomIteration' fois
-		for(int i=0; i<(*ptr);i++)
+		for(int i=0; i<(nbProcess);i++)
 		{
 			current_process->previous->next = current_process->next;
 			current_process->next->previous = current_process->previous;
 			
 			current_process = current_process->next;
 
-			if(processToChoose->priority < current_process->priority)
+
+			if(processToChoose->priority <= current_process->priority)
 			{
 				processToChoose = current_process;
 			}
@@ -156,14 +160,14 @@ static void electFixPriority()
 		current_process = processToChoose;
 		
 		free_process(processToDelete);
-		*ptr = *ptr-1;
+		nbProcess = nbProcess-1;
 	}
 	else
 	{
 		struct pcb_s* processToChoose = current_process;
 		current_process->status = WAITING;
 
-		for(int i=0; i<(*ptr);i++)
+		for(int i=0; i<(nbProcess);i++)
 		{
 			current_process = current_process->next;
 
@@ -194,8 +198,8 @@ static void electFixPriority()
 // 	//On genere le nombre aléatoire entre min et max int.
 // 	int randomNb = getRandomNb();
 			
-// 	uint64_t division = divide(randomNb, (*ptr));
-// 	int moduloAide = division * (*ptr);
+// 	uint64_t division = divide(randomNb, (nbProcess));
+// 	int moduloAide = division * (nbProcess);
 	
 // 	//On calcule un nombre d'iteration a partir du randomNB (sachant que c'est pas une numero entro 0 et 1 mais entre min int et max int)
 // 	int randomIteration = randomNb - moduloAide;
@@ -221,7 +225,7 @@ static void electFixPriority()
 // 		}
 		
 // 		free_process(processToDelete);
-// 		*ptr = *ptr-1;
+// 		nbProcess = nbProcess-1;
 // 	}
 // 	else
 // 	{
