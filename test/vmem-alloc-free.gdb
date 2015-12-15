@@ -10,6 +10,7 @@ commands
 end
 
 
+
 break kmain-vmem-alloc-free.c:9
 commands
   break kAlloc_aligned
@@ -46,6 +47,7 @@ commands
 end
 
 
+
 break kmain-vmem-alloc-free.c:19
 commands
   p/x log_addr2
@@ -78,6 +80,7 @@ commands
 end
 
 
+
 break kmain-vmem-alloc-free.c:27
 commands
   p/x log_addr3
@@ -100,7 +103,103 @@ commands
 end
 
 
-break kmain-vmem-alloc-free.c:34
+
+break kmain-vmem-alloc-free.c:35
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:36
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:37
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:38
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:41
+commands
+  p/x phy_addr
+  continue
+end
+
+
+
+break kmain-vmem-alloc-free.c:43
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:44
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:45
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:46
+commands
+  p/x phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:49
+commands
+  p/x phy_addr
+  continue
+end
+
+
+
+break kFree
+commands
+  p $pc
+  continue
+end
+
+break kmain-vmem-alloc-free.c:51
+commands
+  p/x $phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:52
+commands
+  p/x $phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:53
+commands
+  p/x $phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:54
+commands
+  p/x $phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:55
+commands
+  p/x $phy_addr
+  continue
+end
+break kmain-vmem-alloc-free.c:57
+commands
+  p/x $phy_addr
+  continue
+end
+
+
+
+break kmain-vmem-alloc-free.c:58
 commands
 	assert_results
 end
@@ -130,6 +229,28 @@ define assert_results
   set $ok *= ($16 == 0x1005000)
   set $ok *= ($17 == 0x1006000)
   set $ok *= ($18 == 0x1101000)
+
+  set $ok *= ($19 == 0x1001000)
+  set $ok *= ($20 == 0xfffffff0)
+  set $ok *= ($21 == 0xfffffff0)
+  set $ok *= ($22 == 0xfffffff0)
+  set $ok *= ($23 == 0x1005000)
+
+  set $ok *= ($24 == 0xfffffff0)
+  set $ok *= ($25 == 0xfffffff0)
+  set $ok *= ($26 == 0xfffffff0)
+  set $ok *= ($27 == 0xfffffff0)
+  set $ok *= ($28 == 0x1005000)
+
+  set $ok *= ($29 == kFree + 4)
+  set $ok *= ($30 == kFree + 4)
+  set $ok *= ($31 == 0xfffffff1)
+  set $ok *= ($32 == 0xfffffff1)
+  set $ok *= ($33 == 0xfffffff1)
+  set $ok *= ($34 == 0xfffffff1)
+  set $ok *= ($35 == 0xfffffff1)
+  set $ok *= ($36 == 0xfffffff1)
+
 
   if $ok
     printf "test OK\n"

@@ -264,7 +264,7 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 	// Iterate over each table 1 address, to find if the table needs to be allocated
 	for (first_level_descriptor_address = first_page_table;
 		first_level_descriptor_address <= last_page_table;
-		first_level_descriptor_address += 1)
+		first_level_descriptor_address += 1) // += (1 << 2) has a strange behavior. Pretty sure because it's a pointer
 	{
 		if (is_forbidden_address(*first_level_descriptor_address))
 		{
@@ -331,7 +331,7 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 		// Free frame occupation table
 		uint32_t* phy_addr = get_phy_addr_from(get_second_lvl_descriptor_from(second_lvl_desc_addr), log_addr);
 		uint32_t frame_occupation_idx = (uint32_t) phy_addr / (uint32_t)FRAME_SIZE;
-		if (frame_table[frame_occupation_idx] == FRAME_FREE)
+		if (frame_table[frame_occupation_idx] == FRAME_FREE) // should not happen
 		{
 			PANIC();
 		}

@@ -28,7 +28,31 @@ void kmain()
 	phy_addr = (uint32_t*)vmem_translate(log_addr3 + (1 << 12), NULL);
 	phy_addr = (uint32_t*)vmem_translate(log_addr1 + (1 << 20), NULL); // Second table1 entry, which should be allocated
 	
-	// If free log_addr2 = all 3 pages are freed ?
+	// FREE
+	// Free log_addr2
+	vmem_free((uint8_t*) log_addr2, NULL, 2*FRAME_SIZE);
+	phy_addr = (uint32_t*)vmem_translate(log_addr1, NULL); // alloc
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + FRAME_SIZE, NULL); // freed
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 2*FRAME_SIZE, NULL); // freed
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 3*FRAME_SIZE, NULL); // freed
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 4*FRAME_SIZE, NULL); // alloc
+	
+	// Free log_addr1
+	vmem_free((uint8_t*) log_addr1, NULL, 1024);
+	phy_addr = (uint32_t*)vmem_translate(log_addr1, NULL); // freed
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + FRAME_SIZE, NULL); // freed before
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 2*FRAME_SIZE, NULL); // freed before
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 3*FRAME_SIZE, NULL); // freed before
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 4*FRAME_SIZE, NULL); // alloc
+	
+	// Free log_addr2, which should free 2 second lvl tables
+	vmem_free((uint8_t*) log_addr3, NULL, 263*FRAME_SIZE);
+	phy_addr = (uint32_t*)vmem_translate(log_addr1, NULL); // freed before, but table not available
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + FRAME_SIZE, NULL); // freed before, but table not available
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 2*FRAME_SIZE, NULL); // freed before, but table not available
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 3*FRAME_SIZE, NULL); // freed before, but table not available
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 4*FRAME_SIZE, NULL); // freed, table not available
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + (1 << 20), NULL); // Second table1 entry, which should be a forbidden address table1
 	
 	log_addr2++; log_addr3++; phy_addr++;
 }
