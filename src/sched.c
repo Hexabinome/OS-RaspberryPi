@@ -6,8 +6,12 @@
 #include "asm_tools.h"
 #include "syscall.h"
 #include "vmem.h"
+#include "randomGenerateur.h"
 
 #define STACK_SIZE 10000
+
+// pointeur pointant vers le nbProcess de kmain
+extern int* ptr;
 
 static struct pcb_s* current_process;
 static struct pcb_s kmain_process; 
@@ -95,6 +99,58 @@ static void elect()
 		current_process->status = RUNNING; // Else, this one is now running
 }
 
+static void electRandom()
+{
+
+	//On genere le nombre aléatoire entre min et max int.
+	int randomNb = getRandomNb();
+			
+	uint64_t division = divide(randomNb, (*ptr));
+	int moduloAide = division * (*ptr);
+	
+	//On calcule un nombre d'iteration a partir du randomNB (sachant que c'est pas une numero entro 0 et 1 mais entre min int et max int)
+	int randomIteration = randomNb - moduloAide;
+		
+	// Delete current if terminated (so a terminated process does not wait at the end of list)
+	if(current_process->status == TERMINATED)
+	{
+		// If it is the last process
+		if (current_process == current_process->next && current_process == current_process->previous)
+			terminate_kernel();
+		
+		struct pcb_s* processToDelete = current_process;
+		
+		int i=0;
+		
+		// on choisi le processus suivant 'randomIteration' fois
+		for(i=0;i<randomIteration;i++) 
+		{
+			current_process->previous->next = current_process->next;
+			current_process->next->previous = current_process->previous;
+			
+			current_process = current_process->next;
+		}
+		
+		free_process(processToDelete);
+		*ptr = *ptr-1;
+	}
+	else
+	{
+		current_process->status = WAITING;
+		int j=0;
+		for(j=0;j<randomIteration;j++)
+		{
+			current_process = current_process->next;
+		}
+	}
+
+	if (current_process->status == TERMINATED)
+		electRandom(); // Elect the next one, and delete the current one
+	else
+		current_process->status = RUNNING; // Else, this one is now running
+}
+
+
 void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
 {	
 	struct pcb_s* dest = (struct pcb_s*)(*(sp+1));
@@ -145,7 +201,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	current_process->lr_svc = sp[NBREG];
 
 	// Elects new current process
-	elect();
+	electRandom();
 
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)

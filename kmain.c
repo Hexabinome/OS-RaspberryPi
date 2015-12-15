@@ -2,6 +2,9 @@
 #include "vmem.h"
 #include "config.h"
 
+static int nbProcess = 5;
+int* ptr = &nbProcess;
+
 void kmain()
 {
 	sched_init();
