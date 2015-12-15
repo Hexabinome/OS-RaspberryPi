@@ -4,41 +4,73 @@
 
 #define NB_PROCESS 5
 
+static int nbProcess = 5;
+int* ptr = &nbProcess;
+
 void user_process_1()
 {
 	int v1 = 5;
-	while (1)
+	while (v1 != 4)
 	{
 		v1++;
 	}
+	v1++;
 }
 
 void user_process_2()
 {
 	int v2 = -12;
-	while (1)
+	while (v2 != 3)
 	{
-		v2 -= 2;
+		v2 -= 1;
 	}
+	v2++;
 }
 
 void user_process_3()
 {
 	int v3 = 0;
-	while (1)
+	while (v3 != -1)
 	{
-		v3 += 5;
+		v3 += 1;
 	}
+	v3++;
+}
+void user_process_4()
+{
+	int v1 = 5;
+	while (v1 != 4)
+	{
+		v1++;
+	}
+	v1++;
+}
+void user_process_5()
+{
+	int v1 = 5;
+	while (v1 != 4)
+	{
+		v1++;
+	}
+	v1++;
 }
 
 void kmain()
 {
 	sched_init();
-
-	create_process((func_t*)&user_process_1);
+	
+	create_process((func_t*)&user_process_1);	
 	create_process((func_t*)&user_process_2);
 	create_process((func_t*)&user_process_3);
-
+	create_process((func_t*)&user_process_4);
+	create_process((func_t*)&user_process_5);
+	/*
+	create_process((func_t*)&user_process_6);
+	create_process((func_t*)&user_process_7);
+	create_process((func_t*)&user_process_8);
+	create_process((func_t*)&user_process_9);
+	create_process((func_t*)&user_process_10);	
+	*/
 	// Switch to user mode
 	__asm("cps 0x10");
 

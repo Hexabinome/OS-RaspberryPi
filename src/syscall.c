@@ -115,7 +115,7 @@ void __attribute__((naked)) swi_handler()
 	__asm("MOV %0, sp" : "=r"(sp));
 
 	int interruptNum;
-	__asm("MOV %0, r0" : "=r"(interruptNum));
+	__asm("MOV %0, r0" : "=r"(interruptNum) : : "r5");
 	switch (interruptNum)
 	{
 		case REBOOT:

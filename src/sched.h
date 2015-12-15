@@ -21,7 +21,7 @@ struct pcb_s
 	uint32_t cpsr_user;
 	
 	func_t* entry;
-
+	
 	int status;
 	int return_code;
 	
