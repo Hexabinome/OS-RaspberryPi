@@ -64,11 +64,11 @@ void kmain()
 	// create_process((func_t*)&user_process_4);
 	// create_process((func_t*)&user_process_5);
 
-	create_process_with_fix_priority((func_t*)&user_process_1, 2);	
-	create_process_with_fix_priority((func_t*)&user_process_2, 1);
-	create_process_with_fix_priority((func_t*)&user_process_3, 1);
-	create_process_with_fix_priority((func_t*)&user_process_4, 1);
-	create_process_with_fix_priority((func_t*)&user_process_5, 3);
+	create_process_with_fix_priority((func_t*)&user_process_1, 1);	
+	create_process_with_fix_priority((func_t*)&user_process_2, 2);
+	create_process_with_fix_priority((func_t*)&user_process_3, 3);
+	create_process_with_fix_priority((func_t*)&user_process_4, 4);
+	create_process_with_fix_priority((func_t*)&user_process_5, 5);
 
 	
 	/*

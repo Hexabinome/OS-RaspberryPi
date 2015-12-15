@@ -126,7 +126,7 @@ static void elect()
 }
 * */
 
-static void electFixPriority()
+static void electDynamicPriority()
 {
 		
 	// Delete current if terminated (so a terminated process does not wait at the end of list)
@@ -150,10 +150,15 @@ static void electFixPriority()
 			if(processToChoose->priority < current_process->priority)
 			{
 				processToChoose = current_process;
+				
+			}
+			else{
+				current_process->priority += 1;
 			}
 		}
 
 		current_process = processToChoose;
+		current_process->priority -= 1;
 		
 		free_process(processToDelete);
 		nbProcess = nbProcess-1;
@@ -171,16 +176,78 @@ static void electFixPriority()
 
 				processToChoose = current_process;
 			}
+			else{
+				current_process->priority += 1;
+			}
 		}
 
 		current_process = processToChoose;
+		current_process->priority -= 1;
 	}
 
 	if (current_process->status == TERMINATED)
-		electFixPriority(); // Elect the next one, and delete the current one
+		electDynamicPriority(); // Elect the next one, and delete the current one
 	else
 		current_process->status = RUNNING; // Else, this one is now running
 }
+
+
+
+// static void electFixPriority()
+// {
+		
+// 	// Delete current if terminated (so a terminated process does not wait at the end of list)
+// 	if(current_process->status == TERMINATED)
+// 	{
+// 		// If it is the last process
+// 		if (current_process == current_process->next && current_process == current_process->previous)
+// 			terminate_kernel();
+		
+// 		struct pcb_s* processToDelete = current_process;
+		
+// 		struct pcb_s* processToChoose = current_process->next;
+		
+// 		current_process->previous->next = current_process->next;
+// 		current_process->next->previous = current_process->previous;
+
+// 		// on choisi le processus suivant 'randomIteration' fois
+// 		for(int i=0; i<(nbProcess);i++)
+// 		{
+// 			current_process = current_process->next;
+// 			if(processToChoose->priority < current_process->priority)
+// 			{
+// 				processToChoose = current_process;
+// 			}
+// 		}
+
+// 		current_process = processToChoose;
+		
+// 		free_process(processToDelete);
+// 		nbProcess = nbProcess-1;
+// 	}
+// 	else
+// 	{
+// 		struct pcb_s* processToChoose = current_process;
+// 		current_process->status = WAITING;
+
+// 		for(int i=0; i<(nbProcess);i++)
+// 		{
+// 			current_process = current_process->next;
+
+// 			if(processToChoose->priority < current_process->priority) {
+
+// 				processToChoose = current_process;
+// 			}
+// 		}
+
+// 		current_process = processToChoose;
+// 	}
+
+// 	if (current_process->status == TERMINATED)
+// 		electFixPriority(); // Elect the next one, and delete the current one
+// 	else
+// 		current_process->status = RUNNING; // Else, this one is now running
+// }
 
 
 
@@ -293,7 +360,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	current_process->lr_svc = sp[NBREG];
 
 	// Elects new current process
-	electFixPriority();
+	electDynamicPriority();
 
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)
@@ -358,7 +425,7 @@ static void handle_irq(uint32_t* sp)
 {
 	context_save_to_pcb(sp);
 	// Elects new current process	
-	electFixPriority();
+	electDynamicPriority();
 	context_load_from_pcb(sp);
 }
 
