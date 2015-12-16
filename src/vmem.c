@@ -8,7 +8,7 @@
 static unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
 
-static const uint32_t kernel_heap_end = 0x1000000; // TODO use __kernel_heap_end__
+static const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
 extern uint32_t __irq_stack_end__;
 
 static const uint8_t first_table_flags = 1; // 0b0000000001
@@ -79,8 +79,8 @@ unsigned int init_kern_translation_table(void)
 	
 	// ** Init kernel pages
 	uint32_t first_page = 0;
-	// Number of second level table to store all devices adress
-	uint32_t nbPage = (uint32_t)((kernel_heap_end / FRAME_SIZE) / SECON_LVL_TT_SIZE);
+	// Number of second level table to store all kernel adress
+	uint32_t nbPage = (uint32_t)((kernel_heap_end+1)/ (FRAME_SIZE * SECON_LVL_TT_COUN));
 	uint32_t i;
 	
 	// Alloc table pages for kernel
@@ -99,7 +99,7 @@ unsigned int init_kern_translation_table(void)
 	// ** Init devices pages
 	first_page = 0x20000000 >> 20;
 	// Number of second level table to store all devices adress
-	nbPage = (uint32_t)((0xFFFFFF/ FRAME_SIZE) / SECON_LVL_TT_SIZE);
+	nbPage = (uint32_t)((0xFFFFFF+1) / (FRAME_SIZE * SECON_LVL_TT_COUN));
 	
 	// Alloc table pages for devices
 	for(i = first_page; i < first_page+nbPage; ++i) 

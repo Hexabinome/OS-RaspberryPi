@@ -7,9 +7,6 @@ int* ptr = &nbProcess;*/
 
 void kmain()
 {
-	
-	int  pouet = 1234567 ;
-	pouet++;//dummy 
 	sched_init();
 	
 	__asm("cps 0x10"); // CPU to USER mode
