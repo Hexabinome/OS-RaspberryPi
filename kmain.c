@@ -10,12 +10,10 @@ void kmain()
 	sched_init();
 	
 	__asm("cps 0x10"); // CPU to USER mode
-	 
-	uint64_t temps = sys_gettime();
-	temps++;
+
 	uint32_t size = sizeof(int) * 10;
 	int* momo = (int*)sys_mmap(size);
-	
+
 	momo[0] = 1;
 	momo[4] = 4;
 	momo[9] = 9;

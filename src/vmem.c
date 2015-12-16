@@ -353,8 +353,8 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 void do_sys_mmap(uint32_t* sp)
 {
 	uint32_t size = *(sp+1);
-	uint32_t log_addr = vmem_alloc_for_userland(current_process, size);
-	
+	//uint32_t log_addr = vmem_alloc_for_userland(current_process, size);
+	uint32_t log_addr = vmem_alloc_for_userland(NULL, size);
 	*sp = log_addr;	
 }
 
@@ -363,5 +363,6 @@ void do_sys_munmap(uint32_t* sp)
 	uint8_t* addr = (uint8_t*) *(sp+1);
 	uint32_t size = *(sp+2);
 	
-	vmem_free(addr, current_process, size);
+	//vmem_free(addr, current_process, size);
+	vmem_free(addr, NULL, size);
 }
