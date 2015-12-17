@@ -1,15 +1,5 @@
 #include "vmem_helper.h"
 
-/* **** Internal constants **** */
-static const uint8_t FIRST_LVL_IDX_BEGIN = 20;
-static const uint8_t SECOND_LVL_IDX_BEGIN = 12;
-static const uint8_t SECOND_LVL_IDX_LEN = 0xFF;
-static const uint16_t PAGE_IDX_LEN = 0xFFF;
-
-static const uint32_t FIRST_LVL_ADDR_MASK = 0xFFFFC000; // last 14 bits to 0
-static const uint32_t SECOND_LVL_ADDR_MASK = 0xFFFFFC00; // last 10 bits to 0
-static const uint32_t PHY_ADDR_MASK = 0xFFFFF000; // last 12 bits to 0
-
 /* **** Internal functions **** */
 
 static uint32_t get_first_index(uint32_t log_addr)

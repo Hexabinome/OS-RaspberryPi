@@ -16,6 +16,8 @@ static const uint16_t kernel_flags = 0b000001010010;
 static const uint16_t device_flags = 0b010000010110;
 
 static const uint8_t nb_tables_kernel_device = 16; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
+static const uint16_t device_address_page_table_idx_start = 0x20000000 >> 20;
+static const uint16_t device_address_page_table_idx_end = (0x20000000 >> 20) + 16;
 
 extern struct pcb_s* current_process;
 
@@ -76,15 +78,15 @@ unsigned int init_kern_translation_table(void)
 	// Descriptors
 	uint32_t* first_level_descriptor_address;
     uint32_t* second_level_descriptor_address;
-	
-	uint32_t log_addr;
+    uint32_t first_lvl_desc;
+	// Indexes
+	uint32_t first_lvl_idx, second_lvl_idx;
 	
 	// ** Init kernel pages
-	uint32_t first_page = 0;
-	
+	uint32_t log_addr;
 	uint32_t i;
-	// Alloc table pages for kernel
-	for(i = first_page; i < first_page+nb_tables_kernel_device; ++i)
+	// Alloc table pages for kernel (from 0 to 0xffffff (kernel_heap_end, included))
+	for(i = 0; i < nb_tables_kernel_device; ++i)
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
@@ -92,15 +94,20 @@ unsigned int init_kern_translation_table(void)
 	// Fill second level tables
 	for (log_addr = 0; log_addr < kernel_heap_end; log_addr++)
 	{
-        second_level_descriptor_address = get_second_lvl_descriptor_addr(table_base, log_addr);
+		first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_lvl_idx << 2));
+
+		first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+		second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+		second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
         *second_level_descriptor_address = (log_addr & 0xFFFFF000) | kernel_flags;
 	}
 	
 	// ** Init devices pages
-	first_page = 0x20000000 >> 20;
-	
-	// Alloc table pages for devices
-	for(i = first_page; i < first_page+nb_tables_kernel_device; ++i) 
+	// Alloc table pages for devices (from 0x20000000 to 0x20ffffff)
+	for(i = device_address_page_table_idx_start; i < device_address_page_table_idx_end; ++i) 
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
@@ -108,7 +115,14 @@ unsigned int init_kern_translation_table(void)
 	// Fill second level tables
 	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr++)
     {
-        second_level_descriptor_address = get_second_lvl_descriptor_addr(table_base, log_addr);
+        first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_lvl_idx << 2));
+
+		first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+		second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+		second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
         *second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
     }
 

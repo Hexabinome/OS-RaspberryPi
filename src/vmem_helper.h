@@ -3,6 +3,18 @@
 
 #include <stdint.h>
 
+/* **** Constants **** */
+static const uint8_t FIRST_LVL_IDX_BEGIN = 20;
+static const uint8_t SECOND_LVL_IDX_BEGIN = 12;
+static const uint8_t SECOND_LVL_IDX_LEN = 0xFF;
+static const uint16_t PAGE_IDX_LEN = 0xFFF;
+
+static const uint32_t FIRST_LVL_ADDR_MASK = 0xFFFFC000; // last 14 bits to 0
+static const uint32_t SECOND_LVL_ADDR_MASK = 0xFFFFFC00; // last 10 bits to 0
+static const uint32_t PHY_ADDR_MASK = 0xFFFFF000; // last 12 bits to 0
+
+/* **** Prototypes **** */
+
 // Get first level descriptor address [table_base|first_index|00]
 uint32_t* get_first_lvl_descriptor_addr(uint32_t** table_base, uint32_t log_addr);
 
