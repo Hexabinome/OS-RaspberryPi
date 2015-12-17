@@ -71,8 +71,15 @@ void kmain()
 	// Switch to user mode
 	__asm("cps 0x10");
 
-	while (1)
+	/*while (1)
 	{
 		sys_yield();
+	}*/
+	
+	sys_yield(); // Round robin
+	sys_setscheduler(FIXED_PRIORITY_SCHED);
+	while(1)
+	{
+		sys_yield(); // fixed priority
 	}
 }

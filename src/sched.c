@@ -7,13 +7,20 @@
 #include "syscall.h"
 #include "randomGenerateur.h"
 
-
 #define STACK_SIZE 10000
 
 int nbProcess;
 
 static struct pcb_s* current_process;
 static struct pcb_s kmain_process;
+
+static void (*current_scheduler)(void); // pointer on the current scheduler function
+
+/* Internel functions */
+static void electRoundRobin();
+static void electRandom();
+static void electFixPriority();
+static void electDynamicPriority();
 
 void sched_init()
 {
@@ -26,7 +33,7 @@ void sched_init()
 	current_process->status = RUNNING;
 	current_process->priority = 1;
 
-
+	current_scheduler = &electRoundRobin; // Default scheduler
 
 	ENABLE_IRQ();
 }
@@ -97,7 +104,8 @@ static void free_process(struct pcb_s* process)
 }
 
 
-static void elect()
+// Round robin election
+static void electRoundRobin()
 {
 	// Delete current if terminated (so a terminated process does not wait at the end of list)
 	if (current_process->status == TERMINATED)
@@ -120,11 +128,10 @@ static void elect()
 	}
 
 	if (current_process->status == TERMINATED)
-		elect(); // Elect the next one, and delete the current one
+		electRoundRobin(); // Elect the next one, and delete the current one
 	else
 		current_process->status = RUNNING; // Else, this one is now running
 }
-
 
 static void electDynamicPriority()
 {
@@ -199,8 +206,6 @@ static void electDynamicPriority()
 		current_process->status = RUNNING; // Else, this one is now running
 }
 
-
-
 static void electFixPriority()
 {
 		
@@ -271,7 +276,7 @@ static void electRandom()
 	int randomIteration = randomNb - moduloAide;
 		
 	// Delete current if terminated (so a terminated process does not wait at the end of list)
-	if(current_process->status == TERMINATED)
+	if (current_process->status == TERMINATED)
 	{
 		// If it is the last process
 		if (current_process == current_process->next && current_process == current_process->previous)
@@ -279,17 +284,15 @@ static void electRandom()
 		
 		struct pcb_s* processToDelete = current_process;
 		
-		int i=0;
+		int i = 0;
 		
 		// on enleve le maillon de la chaine		
 		current_process->previous->next = current_process->next;
 		current_process->next->previous = current_process->previous;
 
 		// on choisi le processus suivant 'randomIteration' fois
-		for(i=0;i<randomIteration;i++) 
+		for (i = 0; i < randomIteration; i++) 
 		{
-			
-			
 			current_process = current_process->next;
 		}
 		
@@ -363,7 +366,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	current_process->lr_svc = sp[NBREG];
 
 	// Elects new current process
-	electDynamicPriority();
+	current_scheduler();
 
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)
@@ -427,8 +430,9 @@ static void context_load_from_pcb(uint32_t* sp) // Points to the beginning of pr
 static void handle_irq(uint32_t* sp)
 {
 	context_save_to_pcb(sp);
-	// Elects new current process	
-	electDynamicPriority();
+	
+	current_scheduler(); // calls current scheduler method
+	
 	context_load_from_pcb(sp);
 }
 
@@ -460,3 +464,28 @@ void __attribute__((naked)) irq_handler()
 	__asm("ldmfd sp!, {r0-r12, pc}^");
 }
 
+void do_sys_setscheduler(uint32_t* sp)
+{
+	uint32_t scheduler = *(sp+1);
+	uint8_t return_val = 0;
+	
+	switch (scheduler)
+	{
+		case ROUND_ROBIN_SCHED:
+			current_scheduler = &electRoundRobin;
+			break;
+		case RANDOM_SCHED:
+			current_scheduler = &electRandom;
+			break;
+		case FIXED_PRIORITY_SCHED:
+			current_scheduler = &electFixPriority;
+			break;
+		case DYNAMIC_PRIORITY_SCHED:
+			current_scheduler = &electDynamicPriority;
+			break;
+		default:
+			return_val = -1;
+	}
+	
+	*sp = return_val;
+}

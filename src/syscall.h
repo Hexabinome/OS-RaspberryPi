@@ -11,5 +11,6 @@ uint64_t sys_gettime();
 void sys_yieldto(struct pcb_s* dest);
 void sys_yield();
 void sys_exit(int status);
+int sys_setscheduler(int scheduler);
 
 #endif // __SYSCALL__
