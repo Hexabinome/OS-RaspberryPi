@@ -30,6 +30,7 @@ void kmain()
 	momo[9] = 9;
 	
 	sys_munmap(momo, size);
+	momo[0] = 15; // should not work, but works... (will work with isolation I guess)
 	
 	int i = 0;
 	while (1)

@@ -380,3 +380,12 @@ void do_sys_munmap(uint32_t* sp)
 	//vmem_free(addr, current_process, size);
 	vmem_free(addr, NULL, size);
 }
+
+void data_handler()
+{
+	uint8_t fault_status, fault_address;
+	__asm("MRC p15, 0, %0, c5, c0, 0" : "=r"(fault_status));
+	__asm("MRC p15, 0, %0, c6, c0, 0" : "=r"(fault_address));
+
+	terminate_kernel();
+}
