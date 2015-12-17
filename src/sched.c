@@ -45,7 +45,7 @@ static void start_current_process()
 	sys_exit(0);
 }
 
-void create_process(func_t* entry)
+struct pcb_s* add_process(func_t* entry)
 {
 	struct pcb_s* process = (struct pcb_s*)kAlloc(sizeof(struct pcb_s));
 	process->entry = entry;
@@ -69,33 +69,18 @@ void create_process(func_t* entry)
 	// Initial status
 	process->status = WAITING;
 	++nbProcess;
+	return process;	
+}
+
+void create_process(func_t* entry)
+{
+	add_process(entry);
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
 {
-	struct pcb_s* process = (struct pcb_s*)kAlloc(sizeof(struct pcb_s));
-	process->entry = entry;
-	process->lr_svc = (uint32_t)&start_current_process;
-
-	// Allocate stack
-	process->sp_user = (uint32_t*)kAlloc(STACK_SIZE) + STACK_SIZE;
-
-	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
-
-	// Put the next process at the end of the list
-	struct pcb_s* lastProcess = current_process;
-	while (lastProcess->next != &kmain_process)
-	{
-		lastProcess = lastProcess->next;
-	}
-	lastProcess->next = process;
-	process->previous = lastProcess;
-	process->next = &kmain_process;
-
-	// Initial status
-	process->status = WAITING;
+	struct pcb_s* process = add_process(entry);
 	process->priority = priority;
-	++nbProcess;
 
 }
 
