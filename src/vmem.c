@@ -3,6 +3,7 @@
 #include "config.h" // NULL
 #include "vmem_helper.h"
 #include "util.h"
+#include "hw.h"
 
 
 static unsigned int MMUTABLEBASE; /* Page table address */
@@ -130,14 +131,15 @@ unsigned int init_kern_translation_table(void)
 	
 }
 
+
 uint8_t* init_frame_occupation_table(void)
 {
 	uint8_t* ft = kAlloc(FRAME_TABLE_SIZE);
 	
 	unsigned int i;
-	unsigned int frame_kernel_heap_end = kernel_heap_end / FRAME_SIZE;
-	unsigned int frame_devices_start = 0x20000000 / FRAME_SIZE;
-	unsigned int frame_devices_end = 0x20FFFFFF / FRAME_SIZE;
+	unsigned int frame_kernel_heap_end = divide(kernel_heap_end, FRAME_SIZE);
+	unsigned int frame_devices_start = divide(0x20000000, FRAME_SIZE);
+	unsigned int frame_devices_end = divide(0x20FFFFFF, FRAME_SIZE);
 	
 	for (i = 0; i <= frame_kernel_heap_end; ++i)
 	{
@@ -218,7 +220,7 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 {
 	uint32_t** table_base = get_table_base(process);
-	uint32_t nb_page = (uint32_t)(size/FRAME_SIZE)+1;
+	uint32_t nb_page = divide(size, FRAME_SIZE) + 1;
 	
 	uint32_t log_addr, i, j;
 	uint32_t first_page, last_page;
