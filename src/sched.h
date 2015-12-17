@@ -12,14 +12,6 @@ enum PROCESS_STATUS
 	TERMINATED
 };
 
-enum SCHEDULERS
-{
-	ROUND_ROBIN_SCHED,
-	RANDOM_SCHED,
-	FIXED_PRIORITY_SCHED,
-	DYNAMIC_PRIORITY_SCHED
-};
-
 typedef int (func_t) (void);
 
 struct pcb_s
@@ -45,5 +37,6 @@ struct pcb_s
 void sched_init();
 void create_process(func_t* entry);
 void create_process_with_fix_priority(func_t* entry, int priority);
+void free_process(struct pcb_s* process);
 
 #endif // _SCHED_H

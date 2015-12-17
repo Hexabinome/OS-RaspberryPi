@@ -42,17 +42,17 @@ build:
 	
 #Compilation du fichier .wav
 build/tune.o : sounds/tune.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune1.o : sounds/B4.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune2.o : sounds/C1_1.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune3.o : sounds/D_4.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune4.o : sounds/E1.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune5.o : sounds/F3.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune6.o : sounds/G6.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
 
