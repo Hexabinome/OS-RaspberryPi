@@ -6,7 +6,7 @@
 #include "hw.h"
 
 
-static unsigned int MMUTABLEBASE; /* Page table address */
+unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
 
 static const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
@@ -16,9 +16,9 @@ static const uint8_t first_table_flags = 1; // 0b0000000001
 static const uint16_t kernel_flags = 0b000001010010;
 static const uint16_t device_flags = 0b010000010110;
 
-static const uint8_t nb_tables_kernel_device = 16; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
-static const uint16_t device_address_page_table_idx_start = 0x20000000 >> 20;
-static const uint16_t device_address_page_table_idx_end = (0x20000000 >> 20) + 16;
+const uint8_t nb_tables_kernel_device = 16; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
+const uint16_t device_address_page_table_idx_start = 0x20000000 >> 20;
+const uint16_t device_address_page_table_idx_end = (0x20000000 >> 20) + 16;
 
 extern struct pcb_s* current_process;
 
@@ -37,7 +37,7 @@ static uint32_t** get_table_base(struct pcb_s* process)
 	return table_base;
 }
 
-static uint8_t is_forbidden_address(uint32_t addr)
+uint8_t is_forbidden_address(uint32_t addr)
 {
 	return !(addr & 0x3);
 }
@@ -67,7 +67,7 @@ void vmem_init()
 	MMUTABLEBASE = init_kern_translation_table();
 	frame_table = init_frame_occupation_table();
 	
-	configure_mmu_C();
+	configure_mmu_kernel();
 	start_mmu_C();
 }
 
@@ -131,7 +131,30 @@ unsigned int init_kern_translation_table(void)
 	
 }
 
-
+uint32_t** init_translation_table(void)
+{
+	// Alloc page table
+	uint32_t** page_table = (uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
+	//put kern and devices pages for all processes
+	uint32_t i;
+	uint32_t* first_level_descriptor_address;
+	uint32_t* first_level_descriptor_address_base;
+	//TODO : INIT A L'ARRACHE COMME UN CON
+	for(i = 0; i < nb_tables_kernel_device; i++)
+	{
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
+		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
+		first_level_descriptor_address_base = (uint32_t*) ((uint32_t)MMUTABLEBASE | (i << 2));
+	}
+	
+	for(i = device_address_page_table_idx_start; i < device_address_page_table_idx_end; i++) 
+	{
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
+		first_level_descriptor_address_base = (uint32_t*) ((uint32_t)MMUTABLEBASE | (i << 2));
+		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
+	}
+	return page_table;
+}
 uint8_t* init_frame_occupation_table(void)
 {
 	uint8_t* ft = kAlloc(FRAME_TABLE_SIZE);
@@ -156,10 +179,15 @@ uint8_t* init_frame_occupation_table(void)
 	
 	return ft;
 }	
-
-void configure_mmu_C()
+void configure_mmu_kernel()
 {
-	register unsigned int pt_addr = MMUTABLEBASE;
+	configure_mmu_C(MMUTABLEBASE);
+}
+
+
+void configure_mmu_C(uint32_t mmu_adr)
+{
+	register unsigned int pt_addr = mmu_adr;
 	
 	/* Translation table 0 */
 	__asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (pt_addr));
@@ -367,8 +395,8 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 void do_sys_mmap(uint32_t* sp)
 {
 	uint32_t size = *(sp+1);
-	//uint32_t log_addr = vmem_alloc_for_userland(current_process, size);
-	uint32_t log_addr = vmem_alloc_for_userland(NULL, size);
+	uint32_t log_addr = vmem_alloc_for_userland(current_process, size);
+	//uint32_t log_addr = vmem_alloc_for_userland(NULL, size);
 	*sp = log_addr;	
 }
 
@@ -377,8 +405,8 @@ void do_sys_munmap(uint32_t* sp)
 	uint8_t* addr = (uint8_t*) *(sp+1);
 	uint32_t size = *(sp+2);
 	
-	//vmem_free(addr, current_process, size);
-	vmem_free(addr, NULL, size);
+	vmem_free(addr, current_process, size);
+	//vmem_free(addr, NULL, size);
 }
 
 void data_handler()
