@@ -15,6 +15,8 @@ static const uint8_t first_table_flags = 1; // 0b0000000001
 static const uint16_t kernel_flags = 0b000001010010;
 static const uint16_t device_flags = 0b010000010110;
 
+static const uint8_t nb_tables_kernel_device = 16; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
+
 extern struct pcb_s* current_process;
 
 static uint32_t** get_table_base(struct pcb_s* process)
@@ -79,12 +81,10 @@ unsigned int init_kern_translation_table(void)
 	
 	// ** Init kernel pages
 	uint32_t first_page = 0;
-	// Number of second level table to store all kernel adress
-	uint32_t nbPage = (uint32_t)((kernel_heap_end+1)/ (FRAME_SIZE * SECON_LVL_TT_COUN));
-	uint32_t i;
 	
+	uint32_t i;
 	// Alloc table pages for kernel
-	for(i = first_page; i < first_page+nbPage; ++i)
+	for(i = first_page; i < first_page+nb_tables_kernel_device; ++i)
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
@@ -98,11 +98,9 @@ unsigned int init_kern_translation_table(void)
 	
 	// ** Init devices pages
 	first_page = 0x20000000 >> 20;
-	// Number of second level table to store all devices adress
-	nbPage = (uint32_t)((0xFFFFFF+1) / (FRAME_SIZE * SECON_LVL_TT_COUN));
 	
 	// Alloc table pages for devices
-	for(i = first_page; i < first_page+nbPage; ++i) 
+	for(i = first_page; i < first_page+nb_tables_kernel_device; ++i) 
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
