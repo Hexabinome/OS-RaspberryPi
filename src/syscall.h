@@ -13,5 +13,6 @@ void sys_yield();
 void sys_exit(int status);
 void* sys_mmap(unsigned int size);
 void sys_munmap(void* addr, unsigned int size);
+int sys_setscheduler(int scheduler);
 
 #endif // __SYSCALL__

@@ -13,7 +13,8 @@ enum SYSCALLS
 	YIELD,
 	EXIT,
 	MMAP,
-	MUNMAP
+	MUNMAP,
+	SETSCHEDULER
 };
 
 void sys_reboot()
@@ -133,6 +134,23 @@ void sys_munmap(void* addr, unsigned int size)
 
 void do_sys_munmap(uint32_t* addr); // implemented in vmem.c
 
+/* Returns 0 if ok. -1 not correct : keeps previous scheduler
+ * Use constants defined in enum in sched.h (SCHEDULERS)
+ */
+int sys_setscheduler(int scheduler)
+{
+	__asm("MOV r1, %0": : "r"(scheduler));
+	__asm("MOV r0, %0": : "r"(SETSCHEDULER));
+	__asm("SWI #0");
+	
+	uint32_t return_value;
+	__asm("MOV %0, r0" : "=r"(return_value));
+	
+	return return_value;
+}
+
+void do_sys_setscheduler(uint32_t* scheduler); // implemented in sched.c
+
 void __attribute__((naked)) swi_handler()
 {
 	__asm("stmfd sp!, {r0-r12, lr}");
@@ -141,7 +159,7 @@ void __attribute__((naked)) swi_handler()
 	__asm("MOV %0, sp" : "=r"(sp));
 
 	int interruptNum;
-	__asm("MOV %0, r0" : "=r"(interruptNum));
+	__asm("MOV %0, r0" : "=r"(interruptNum) : : "r5");
 	switch (interruptNum)
 	{
 		case REBOOT:
@@ -170,6 +188,9 @@ void __attribute__((naked)) swi_handler()
 			break;
 		case MUNMAP:
 			do_sys_munmap(sp);
+			break;
+		case SETSCHEDULER:
+			do_sys_setscheduler(sp);
 			break;
 		default:
 			PANIC();
