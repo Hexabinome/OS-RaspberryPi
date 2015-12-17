@@ -54,8 +54,7 @@ build/tune4.o : sounds/E1.wav
 build/tune5.o : sounds/F3.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
 build/tune6.o : sounds/G6.wav
-	arm-none-eabi-ld -s -r -o $@ -b binary $^ 
-	timer_init();
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
 
 # compilation C vers ELF
 build/%.o: src/%.c $(wildcard src/*.h) | build
