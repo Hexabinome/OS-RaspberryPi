@@ -38,7 +38,7 @@ void sched_init()
 	current_process->priority = 1; // kmain priority
 
 	current_scheduler = &electRoundRobin; // Default scheduler
-	current_process->page_table = init_translation_table();	
+	current_process->page_table = init_translation_table();
 }
 
 static void start_current_process()
@@ -61,6 +61,7 @@ struct pcb_s* add_process(func_t* entry)
 	
 	
 	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
+	process->cpsr_user &= 0b1111111111111111111111101111111; // Put interruptions ON
 
 	// Put the next process at the end of the list
 	struct pcb_s* lastProcess = current_process;
@@ -85,7 +86,8 @@ struct pcb_s* add_process(func_t* entry)
 	configure_mmu_C((uint32_t)process->page_table);
 	
 	// Allocate stack
-	process->sp_user = (uint32_t*)(vmem_alloc_for_userland(process, STACK_SIZE) + STACK_SIZE);
+	process->sp_end = vmem_alloc_for_userland(process, STACK_SIZE);
+	process->sp_user = (uint32_t*)(process->sp_end + STACK_SIZE);
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -98,9 +100,9 @@ struct pcb_s* add_process(func_t* entry)
 
 void create_process(func_t* entry)
 {
-	//DISABLE_IRQ();
+	DISABLE_IRQ();
 	add_process(entry);
-	//ENABLE_IRQ();
+	ENABLE_IRQ();
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
@@ -112,13 +114,28 @@ void create_process_with_fix_priority(func_t* entry, int priority)
 
 void free_process(struct pcb_s* process)
 {
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Process to delete MMU mod
+	configure_mmu_C((uint32_t)process->page_table);
+	
 	//free stack
-	vmem_free((uint8_t*)process->sp_user, process, STACK_SIZE);
+	vmem_free((uint8_t*)process->sp_end, process, STACK_SIZE);
+	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Kernel MMU mod
+	configure_mmu_kernel();
+	
 	//free page table
-	kFree((uint8_t*)process->page_table,FIRST_LVL_TT_SIZE);
+	kFree((uint8_t*)process->page_table, FIRST_LVL_TT_SIZE);
 	//free pcb
 	kFree((uint8_t*)process, sizeof(struct pcb_s));
 	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
 }
 
 void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
@@ -231,7 +248,7 @@ static void context_load_from_pcb(uint32_t* sp) // Points to the beginning of pr
 
 	__asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
 
-	}
+}
 
 static void handle_irq(uint32_t* sp)
 {
