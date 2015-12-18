@@ -39,6 +39,9 @@ void sched_init()
 
 	current_scheduler = &electRoundRobin; // Default scheduler
 	current_process->page_table = init_translation_table();
+	
+	timer_init();
+	ENABLE_IRQ();
 }
 
 static void start_current_process()

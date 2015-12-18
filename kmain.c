@@ -34,14 +34,10 @@ void kmain()
 	audio_init();
 	sched_init();
 
-	timer_init();
-	ENABLE_IRQ();
-
 	create_process(&process1);
 	create_process(&process2);
 	
 	__asm("cps 0x10"); // CPU to USER mode
-
 	
 	//uint32_t size = sizeof(int) * 10;
 	//int* momo = (int*)sys_mmap(size);
@@ -55,9 +51,10 @@ void kmain()
 	sys_munmap(momo, size);
 	momo[0] = 15; // should not work, but works... (will work with isolation I guess)
 	*/
+	
 	int i = 0;
 	while (1)
 	{
-		i--;
+		++i;
 	}
 }
