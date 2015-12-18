@@ -2,6 +2,9 @@
 #include "vmem.h"
 #include "config.h"
 #include "pwm.h"
+#include "asm_tools.h"
+#include "hw.h"
+
 extern struct pcb_s* current_process;
 int process1()
 {
@@ -10,7 +13,7 @@ int process1()
 	int a1 = vmem_translate((uint32_t)momo1, current_process);
 	while (1)
 	{
-		a1++;
+		(momo1[0])++;
 	}
 	momo1++;
 	return a1;
@@ -23,7 +26,7 @@ int process2()
 	int a2 = vmem_translate((uint32_t)momo2, current_process);
 	while (1)
 	{
-		a2++;
+		(momo2[1])++;
 	}
 	momo2++;
 	return a2;
@@ -37,8 +40,12 @@ void kmain()
 	create_process(&process1);
 	//create_process(&process2);
 	
+	timer_init();
+	ENABLE_IRQ();
+	
 	__asm("cps 0x10"); // CPU to USER mode
 
+	ENABLE_IRQ();
 	//uint32_t size = sizeof(int) * 10;
 	//int* momo = (int*)sys_mmap(size);
 	//int a = vmem_translate((uint32_t)momo, NULL);

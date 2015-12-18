@@ -129,32 +129,58 @@ unsigned int init_kern_translation_table(void)
 
 	return (unsigned int)table_base;
 	
-}
+} 
 
 uint32_t** init_translation_table(void)
 {
 	// Alloc page table
 	uint32_t** page_table = (uint32_t**) kAlloc_aligned(FIRST_LVL_TT_SIZE, FIRST_LVL_TT_ALIG);
-	//put kern and devices pages for all processes
+	// Put kern and devices pages for all processes
 	uint32_t i;
 	uint32_t* first_level_descriptor_address;
-	uint32_t* first_level_descriptor_address_base;
-	//TODO : INIT A L'ARRACHE COMME UN CON
+	uint32_t first_lvl_idx, first_lvl_desc, second_lvl_idx, *second_level_descriptor_address, log_addr;
+	
 	for(i = 0; i < nb_tables_kernel_device; i++)
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
-		first_level_descriptor_address_base = (uint32_t*) ((uint32_t)MMUTABLEBASE | (i << 2));
+	}
+	// Fill second level tables
+	for (log_addr = 0; log_addr < kernel_heap_end; log_addr++)
+	{
+		first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
+
+		first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+		second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+		second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
+        *second_level_descriptor_address = (log_addr & 0xFFFFF000) | kernel_flags;
 	}
 	
 	for(i = device_address_page_table_idx_start; i < device_address_page_table_idx_end; i++) 
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
-		first_level_descriptor_address_base = (uint32_t*) ((uint32_t)MMUTABLEBASE | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
+	// Fill second level tables
+	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr++)
+    {
+        first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
+
+		first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+		second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+		second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
+        *second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
+    }
+	
 	return page_table;
 }
+
 uint8_t* init_frame_occupation_table(void)
 {
 	uint8_t* ft = kAlloc(FRAME_TABLE_SIZE);

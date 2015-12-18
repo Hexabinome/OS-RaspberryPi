@@ -23,6 +23,13 @@ void (*current_scheduler)(void); // pointer on the current scheduler function
 
 void sched_init()
 {
+	// Init virtual memory
+#if VMEM
+	vmem_init();
+#else
+	kheap_init();
+#endif
+
 	// Init process data structure
 	current_process = &kmain_process;
 	current_process->next = current_process;
@@ -31,16 +38,7 @@ void sched_init()
 	current_process->priority = 1; // kmain priority
 
 	current_scheduler = &electRoundRobin; // Default scheduler
-
-	// Init virtual memory
-#if VMEM
-	vmem_init();
-#else
-	kheap_init();
-#endif
 	current_process->page_table = init_translation_table();	
-	timer_init();
-	ENABLE_IRQ();
 }
 
 static void start_current_process()
@@ -52,8 +50,8 @@ static void start_current_process()
 struct pcb_s* add_process(func_t* entry)
 {
 	// Invalidate TLB entries
-	__asm("mcr p15, 0, r0, c8, c6, 0");
-	//Kernel MMU mod
+	INVALIDATE_TLB();
+	// Kernel MMU mod
 	configure_mmu_kernel();
 	
 	// Alloc pcb
@@ -62,7 +60,6 @@ struct pcb_s* add_process(func_t* entry)
 	process->lr_svc = (uint32_t)&start_current_process;
 	
 	
-
 	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
 
 	// Put the next process at the end of the list
@@ -83,16 +80,16 @@ struct pcb_s* add_process(func_t* entry)
 	
 	//going to created process mmu mod to allocate stack
 	// Invalidate TLB entries
-	__asm("mcr p15, 0, r0, c8, c6, 0");
+	INVALIDATE_TLB();
 	//process MMU mod
 	configure_mmu_C((uint32_t)process->page_table);
 	
 	// Allocate stack
-	process->sp_user = (uint32_t*)vmem_alloc_for_userland(process, STACK_SIZE) + STACK_SIZE;
+	process->sp_user = (uint32_t*)(vmem_alloc_for_userland(process, STACK_SIZE) + STACK_SIZE);
 	
 	// Invalidate TLB entries
-	__asm("mcr p15, 0, r0, c8, c6, 0");
-	//Kernel MMU mod
+	INVALIDATE_TLB();
+	// Current process MMU mod
 	configure_mmu_C((uint32_t)current_process->page_table);
 	
 	
@@ -101,7 +98,9 @@ struct pcb_s* add_process(func_t* entry)
 
 void create_process(func_t* entry)
 {
+	//DISABLE_IRQ();
 	add_process(entry);
+	//ENABLE_IRQ();
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
@@ -239,12 +238,14 @@ static void handle_irq(uint32_t* sp)
 	context_save_to_pcb(sp);
 
 	current_scheduler(); // calls current scheduler method
+	
 	// set translation table
-	__asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (current_process->page_table));
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
 
 	context_load_from_pcb(sp);
-	
-
 }
 
 void __attribute__((naked)) irq_handler()
