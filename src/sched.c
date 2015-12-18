@@ -109,10 +109,11 @@ void create_process(func_t* entry)
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
-{
+{	
+	DISABLE_IRQ();
 	struct pcb_s* process = add_process(entry);
 	process->priority = priority;
-
+	ENABLE_IRQ();
 }
 
 void free_process(struct pcb_s* process)
