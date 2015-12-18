@@ -8,7 +8,6 @@
 extern struct pcb_s* current_process;
 int process1()
 {
-	
 	int* momo1 = (int*)sys_mmap(sizeof(int) * 10);
 	int a1 = vmem_translate((uint32_t)momo1, current_process);
 	sys_yield();

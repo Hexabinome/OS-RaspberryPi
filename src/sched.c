@@ -190,6 +190,11 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	// Elects new current process
 	current_scheduler();
 
+	// Set transalation table
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
+
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)
 	{
@@ -203,6 +208,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	__asm("cps 0b10011"); // SVC mode
 
 	__asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
+	
 }
 
 void do_sys_exit(uint32_t* sp) // Points on saved r0 in stack

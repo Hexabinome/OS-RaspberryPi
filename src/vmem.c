@@ -376,7 +376,7 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 {
 	uint32_t** table_base = (uint32_t**)( (uint32_t)get_table_base(process) & 0xFFFFC000);
 	
-	uint32_t nb_page = (size/FRAME_SIZE)+1;
+	uint32_t nb_page = divide(size, FRAME_SIZE) + 1;
 	uint32_t max_log_addr = (uint32_t) vAddress + (nb_page << 12);
 	uint32_t log_addr;
 	// Set second level descriptors to forbidden address & free frame occupation table
