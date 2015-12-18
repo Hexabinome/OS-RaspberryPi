@@ -13,6 +13,7 @@ int process1()
 	sys_yield();
 	sys_munmap(momo1, sizeof(int) * 10);
 	a1 = vmem_translate((uint32_t)momo1, current_process);
+	momo1[40000] = 50;
 	momo1++;
 	return a1;
 }

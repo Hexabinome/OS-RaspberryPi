@@ -4,6 +4,7 @@
 #include "vmem_helper.h"
 #include "util.h"
 #include "hw.h"
+#include "syscall.h"
 
 
 unsigned int MMUTABLEBASE; /* Page table address */
@@ -441,5 +442,6 @@ void data_handler()
 	__asm("MRC p15, 0, %0, c5, c0, 0" : "=r"(fault_status));
 	__asm("MRC p15, 0, %0, c6, c0, 0" : "=r"(fault_address));
 
-	terminate_kernel();
+	sys_exit(-1);
+	//terminate_kernel();
 }
