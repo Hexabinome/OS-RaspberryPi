@@ -11,14 +11,25 @@
 #define STACK_SIZE 10000
 
 unsigned int nbProcess;
-
+extern const uint8_t nb_tables_kernel_device; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
+extern const uint16_t device_address_page_table_idx_start;
+extern const uint16_t device_address_page_table_idx_end;
 struct pcb_s* current_process;
 static struct pcb_s kmain_process;
+
+unsigned int MMUTABLEBASE; /* Page table address */
 
 void (*current_scheduler)(void); // pointer on the current scheduler function
 
 void sched_init()
 {
+	// Init virtual memory
+#if VMEM
+	vmem_init();
+#else
+	kheap_init();
+#endif
+
 	// Init process data structure
 	current_process = &kmain_process;
 	current_process->next = current_process;
@@ -27,14 +38,13 @@ void sched_init()
 	current_process->priority = 1; // kmain priority
 
 	current_scheduler = &electRoundRobin; // Default scheduler
-
-	// Init virtual memory
-#if VMEM
-	vmem_init();
-#else
-	kheap_init();
-#endif
-		
+	current_process->page_table = init_translation_table();
+	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Kernel MMU mod
+	configure_mmu_C((uint32_t) current_process->page_table);
+	
 	timer_init();
 	ENABLE_IRQ();
 }
@@ -47,14 +57,19 @@ static void start_current_process()
 
 struct pcb_s* add_process(func_t* entry)
 {
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Kernel MMU mod
+	configure_mmu_kernel();
+	
+	// Alloc pcb
 	struct pcb_s* process = (struct pcb_s*)kAlloc(sizeof(struct pcb_s));
 	process->entry = entry;
 	process->lr_svc = (uint32_t)&start_current_process;
-
-	// Allocate stack
-	process->sp_user = (uint32_t*)kAlloc(STACK_SIZE) + STACK_SIZE;
-
+	
+	
 	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
+	process->cpsr_user &= 0b1111111111111111111111101111111; // Put interruptions ON
 
 	// Put the next process at the end of the list
 	struct pcb_s* lastProcess = current_process;
@@ -69,24 +84,67 @@ struct pcb_s* add_process(func_t* entry)
 	// Initial status
 	process->status = WAITING;
 	++nbProcess;
+	
+	process->page_table = init_translation_table();
+	
+	//going to created process mmu mod to allocate stack
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	//process MMU mod
+	configure_mmu_C((uint32_t)process->page_table);
+	
+	// Allocate stack
+	process->sp_end = vmem_alloc_for_userland(process, STACK_SIZE);
+	process->sp_user = (uint32_t*)(process->sp_end + STACK_SIZE);
+	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
+	
+	
 	return process;	
 }
 
 void create_process(func_t* entry)
 {
+	DISABLE_IRQ();
 	add_process(entry);
+	ENABLE_IRQ();
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
-{
+{	
+	DISABLE_IRQ();
 	struct pcb_s* process = add_process(entry);
 	process->priority = priority;
-
+	ENABLE_IRQ();
 }
 
 void free_process(struct pcb_s* process)
 {
-	kFree((uint8_t*)process, sizeof(struct pcb_s) + STACK_SIZE);
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Process to delete MMU mod
+	configure_mmu_C((uint32_t)process->page_table);
+	
+	//free stack
+	vmem_free((uint8_t*)process->sp_end, process, STACK_SIZE);
+	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Kernel MMU mod
+	configure_mmu_kernel();
+	
+	//free page table
+	kFree((uint8_t*)process->page_table, FIRST_LVL_TT_SIZE);
+	//free pcb
+	kFree((uint8_t*)process, sizeof(struct pcb_s));
+	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
 }
 
 void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
@@ -141,6 +199,11 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	// Elects new current process
 	current_scheduler();
 
+	// Set transalation table
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
+
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)
 	{
@@ -154,6 +217,7 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	__asm("cps 0b10011"); // SVC mode
 
 	__asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
+	
 }
 
 void do_sys_exit(uint32_t* sp) // Points on saved r0 in stack
@@ -198,14 +262,21 @@ static void context_load_from_pcb(uint32_t* sp) // Points to the beginning of pr
 	__asm("cps 0b10010"); // IRQ mode
 
 	__asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
+
 }
 
 static void handle_irq(uint32_t* sp)
 {
 	context_save_to_pcb(sp);
-	
+
 	current_scheduler(); // calls current scheduler method
 	
+	// set translation table
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
+
 	context_load_from_pcb(sp);
 }
 

@@ -20,6 +20,7 @@ struct pcb_s
 	uint32_t lr_svc;
 	uint32_t lr_user;
 	uint32_t* sp_user;
+	uint32_t sp_end;
 	uint32_t cpsr_user;
 	
 	func_t* entry;

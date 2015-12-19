@@ -99,6 +99,11 @@ end
 break kmain-vmem-alloc-free.c:33
 commands
   p/x phy_addr
+  break kFree
+	commands
+	  p $pc
+	  continue
+	end
   continue
 end
 
@@ -160,40 +165,34 @@ end
 
 
 
-break kFree
-commands
-  p $pc
-  continue
-end
-
 break kmain-vmem-alloc-free.c:51
 commands
-  p/x $phy_addr
+  p/x phy_addr
   continue
 end
 break kmain-vmem-alloc-free.c:52
 commands
-  p/x $phy_addr
+  p/x phy_addr
   continue
 end
 break kmain-vmem-alloc-free.c:53
 commands
-  p/x $phy_addr
+  p/x phy_addr
   continue
 end
 break kmain-vmem-alloc-free.c:54
 commands
-  p/x $phy_addr
+  p/x phy_addr
   continue
 end
 break kmain-vmem-alloc-free.c:55
 commands
-  p/x $phy_addr
+  p/x phy_addr
   continue
 end
 break kmain-vmem-alloc-free.c:57
 commands
-  p/x $phy_addr
+  p/x phy_addr
   continue
 end
 
@@ -212,35 +211,35 @@ define assert_results
   
   set $ok *= ($2 == kAlloc_aligned + 16)
   set $ok *= ($3 == 0x1000000)
-  set $ok *= ($4 == 0x1001000)
-  set $ok *= ($5 == 0x1001001)
+  set $ok *= ($4 == 0x1000000)
+  set $ok *= ($5 == 0x1000001)
   set $ok *= ($6 == 0xfffffff0)
   set $ok *= ($7 == 0xfffffff1)
   
   set $ok *= ($8 == 0x1001000)
-  set $ok *= ($9 == 0x1002000)
-  set $ok *= ($10 == 0x1003000)
-  set $ok *= ($11 == 0x1004000)
+  set $ok *= ($9 == 0x1001000)
+  set $ok *= ($10 == 0x1002000)
+  set $ok *= ($11 == 0xfffffff0)
   set $ok *= ($12 == 0xfffffff0)
   set $ok *= ($13 == 0xfffffff1)
   
   set $ok *= ($14 == kAlloc_aligned + 16)
-  set $ok *= ($15 == 0x1004000)
-  set $ok *= ($16 == 0x1005000)
-  set $ok *= ($17 == 0x1006000)
-  set $ok *= ($18 == 0x1101000)
+  set $ok *= ($15 == 0x1003000)
+  set $ok *= ($16 == 0x1003000)
+  set $ok *= ($17 == 0x1004000)
+  set $ok *= ($18 == 0x1100000)
 
-  set $ok *= ($19 == 0x1001000)
+  set $ok *= ($19 == 0x1000000)
   set $ok *= ($20 == 0xfffffff0)
   set $ok *= ($21 == 0xfffffff0)
-  set $ok *= ($22 == 0xfffffff0)
-  set $ok *= ($23 == 0x1005000)
+  set $ok *= ($22 == 0x1003000)
+  set $ok *= ($23 == 0x1004000)
 
   set $ok *= ($24 == 0xfffffff0)
   set $ok *= ($25 == 0xfffffff0)
   set $ok *= ($26 == 0xfffffff0)
-  set $ok *= ($27 == 0xfffffff0)
-  set $ok *= ($28 == 0x1005000)
+  set $ok *= ($27 == 0x1003000)
+  set $ok *= ($28 == 0x1004000)
 
   set $ok *= ($29 == kFree + 16)
   set $ok *= ($30 == kFree + 16)

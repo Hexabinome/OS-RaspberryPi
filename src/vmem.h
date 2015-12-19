@@ -19,13 +19,18 @@
 #define FRAME_OCCUPIED 1
 #define FRAME_FREE 0
 
+
 void vmem_init();
 unsigned int init_kern_translation_table(void);
+uint32_t** init_translation_table(void);
 uint8_t* init_frame_occupation_table(void);
 
-void configure_mmu_C();
+void configure_mmu_kernel();
+void configure_mmu_C(uint32_t mmu_adr);
 void start_mmu_C();
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process);
+
+uint8_t is_forbidden_address(uint32_t addr);
 
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size);
 void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size);

@@ -25,7 +25,7 @@ void sys_reboot()
 
 static void do_sys_reboot()
 {
-#ifdef RPI
+#if RPI
 	Set32(PM_WDOG, PM_PASSWORD | 1);
 	Set32(PM_RSTC, PM_PASSWORD | PM_RSTC_WRCFG_FULL_RESET);
 	while(1);
