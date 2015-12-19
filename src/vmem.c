@@ -271,11 +271,21 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
     return (uint32_t) get_phy_addr_from(second_lvl_desc, va);
 }
 
+static uint32_t get_nb_pages(uint32_t size)
+{
+	uint32_t nb_pages = divide(size, FRAME_SIZE);
+	uint32_t nb_pages_one = divide(size-1, FRAME_SIZE);
+	if (nb_pages == nb_pages_one)
+	{
+		nb_pages++;
+	}
+	return nb_pages;
+}
 
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 {
 	uint32_t** table_base = get_table_base(process);
-	uint32_t nb_page = divide(size, FRAME_SIZE) + 1;
+	uint32_t nb_page = get_nb_pages(size);
 	
 	uint32_t log_addr, i, j;
 	uint32_t first_page, last_page;
@@ -377,7 +387,7 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 {
 	uint32_t** table_base = (uint32_t**)( (uint32_t)get_table_base(process) & 0xFFFFC000);
 	
-	uint32_t nb_page = divide(size, FRAME_SIZE) + 1;
+	uint32_t nb_page = get_nb_pages(size);
 	uint32_t max_log_addr = (uint32_t) vAddress + (nb_page << 12);
 	uint32_t log_addr;
 	// Set second level descriptors to forbidden address & free frame occupation table

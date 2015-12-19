@@ -18,7 +18,7 @@ void kmain()
 	
 	phy_addr = (uint32_t*)vmem_translate(log_addr2, NULL); // allocated
 	phy_addr = (uint32_t*)vmem_translate(log_addr2 + FRAME_SIZE, NULL); // allocated
-	phy_addr = (uint32_t*)vmem_translate(log_addr2 + (2*FRAME_SIZE), NULL); // allocated
+	phy_addr = (uint32_t*)vmem_translate(log_addr2 + (2*FRAME_SIZE), NULL); // not allocated
 	phy_addr = (uint32_t*)vmem_translate(log_addr2 + (3*FRAME_SIZE), NULL); // not allocated
 	phy_addr = (uint32_t*)vmem_translate(log_addr1 + (1 << 20), NULL); // Second table1 entry, which has a forbidden address table1
 	
@@ -34,7 +34,7 @@ void kmain()
 	phy_addr = (uint32_t*)vmem_translate(log_addr1, NULL); // alloc
 	phy_addr = (uint32_t*)vmem_translate(log_addr1 + FRAME_SIZE, NULL); // freed
 	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 2*FRAME_SIZE, NULL); // freed
-	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 3*FRAME_SIZE, NULL); // freed
+	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 3*FRAME_SIZE, NULL); // alloc
 	phy_addr = (uint32_t*)vmem_translate(log_addr1 + 4*FRAME_SIZE, NULL); // alloc
 	
 	// Free log_addr1
