@@ -5,12 +5,13 @@ from subprocess import check_output
 from time import time
 
 def run_all_tests():
+	counter = 1
 	for test in tests:
 		kmain_file = test[0]
 		gdb_file = test[1]
 		
 		command_line = "./run-test.sh ../test/{0} ../test/{1}".format(kmain_file, gdb_file)
-		print("Test {0}".format(command_line), end=" : ")
+		print("{0}. Test {1}".format(counter, command_line), end=" : ")
 		stdout.flush()
 		start_time = time()
 		test_output = check_output(command_line, shell=True).decode(encoding='UTF-8')
@@ -22,6 +23,7 @@ def run_all_tests():
 			print("ERROR ({0}s)".format(exec_time))
 		else:
 			print("ERROR (unexpected) ({0}s)".format(exec_time))
+		counter += 1
 
 
 

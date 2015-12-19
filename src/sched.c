@@ -40,6 +40,11 @@ void sched_init()
 	current_scheduler = &electRoundRobin; // Default scheduler
 	current_process->page_table = init_translation_table();
 	
+	// Invalidate TLB entries
+	INVALIDATE_TLB();
+	// Kernel MMU mod
+	configure_mmu_C((uint32_t) current_process->page_table);
+	
 	timer_init();
 	ENABLE_IRQ();
 }
