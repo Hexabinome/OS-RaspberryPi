@@ -2,61 +2,54 @@
 #include "sched.h"
 #include "config.h"
 #include "util.h"
+#include "syscall.h"
 
 extern struct pcb_s* current_process;
 
-static struct heap_block* get_new_block(struct heap_block* first, uint32_t size)
-{
-	// TODO what?
-}
-
 // Finds the first block which has at least the requested size
-static struct heap_block* find_free_block(struct heap_block* first_block, uint32_t size)
+static struct heap_block* find_free_block(uint32_t size)
 {
-	struct heap_block* current_block = first_block;
-	while ((!(current_block->is_free)) || current_block->size < size || current_block->next != first_block) // iterate on existing blocks, while not accurate
+	struct heap_block* current_block = current_process->heap;
+	while ((!(current_block->is_free)) || current_block->size < size || current_block->next != current_process->heap) // iterate on existing blocks, while not accurate
 	{
 		current_block = current_block->next;
 	}
 	
-	if (current_block->next == first_block) // no free block
+	if (current_block->is_free && current_block->size >= size)
 	{
-		return NULL;
+		
+		return current_block;
 	}
 	
-	// Found a free block
-	return current_block;
+	// No free block
+	return NULL;
 }
 
 void* gmalloc(unsigned int size)
 {
 	struct heap_block* new_block;
 	
-	if (current_process->heap == NULL) // first call
+	// Find first free block, which is big enough
+	new_block = find_free_block(size);
+	if (new_block == NULL) // no free block found
 	{
-		new_block = get_new_block(NULL, size);
-		if (new_block == NULL) // error
-		{
-			return NULL;
-		}
+		return NULL;
 	}
-	else // at least one memory block has already been allocated
+	
+	if (new_block->size == size) // If the block has the exact size
 	{
-		new_block = find_free_block(current_process->heap, size);
-		if (new_block == NULL) // no free block found
-		{
-			// alloc new block
-			new_block = get_new_block(current_process->heap, size);
-			if (new_block == NULL) // error
-			{
-				return NULL;
-			}
-		}
-		else // free block found
-		{
-			// TODO split block in two if block is bigger than needed size
-			new_block->is_free = FALSE;	
-		}
+		new_block->is_free = FALSE;
+	}
+	else // The found block is too big, split it
+	{
+		struct heap_block* new_second_block = (new_block + size + HEAP_BLOCK_SIZE);
+		new_second_block->is_free = TRUE;
+		new_second_block->size = (new_block->size + HEAP_BLOCK_SIZE) - (size + HEAP_BLOCK_SIZE); // TODO correct ?
+		new_second_block->next = new_block->next;
+		
+		new_block->is_free = FALSE;
+		new_block->size = size;
+		new_block->next = new_second_block;
 	}
 	
 	
@@ -73,10 +66,18 @@ void gfree(void* addr)
 	
 	struct heap_block* block = ((struct heap_block*) addr) - 1;
 	
-	if (!block->is_free) // if not free, error
+	if (block->is_free) // if free, error
 	{
 		PANIC();
 	}
 	
 	block->is_free = TRUE;
+	
+	// Fusion with next block if free
+	struct heap_block* next_block = block->next;
+	if (next_block->is_free && next_block != block)
+	{
+		block->size += next_block->size;
+		block->next = next_block->next;
+	}
 }

@@ -8,7 +8,8 @@
 #include "vmem.h"
 #include "schedulers.h"
 
-#define STACK_SIZE 10000
+#define MEMORY_SIZE 1000000 // 1MB
+#define HEAP_SIZE 900000 // 9KB
 
 unsigned int nbProcess;
 extern const uint8_t nb_tables_kernel_device; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
@@ -94,10 +95,13 @@ static struct pcb_s* add_process(func_t* entry)
 	//process MMU mod
 	configure_mmu_C((uint32_t)process->page_table);
 	
-	// Allocate stack
-	process->memory_start = vmem_alloc_for_userland(process, STACK_SIZE);
-	process->sp_user = (uint32_t*)(process->memory_start + STACK_SIZE);
-	process->heap = NULL;
+	// Allocate memory (stack + heap)
+	process->memory_start = vmem_alloc_for_userland(process, MEMORY_SIZE);
+	process->sp_user = (uint32_t*)(process->memory_start + MEMORY_SIZE);
+	process->heap = (struct heap_block*) (process->memory_start);
+	process->heap->is_free = TRUE;
+	process->heap->next = process->heap;
+	process->heap->size = HEAP_SIZE - HEAP_BLOCK_SIZE;
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -130,10 +134,8 @@ void free_process(struct pcb_s* process)
 	// Process to delete MMU mod
 	configure_mmu_C((uint32_t)process->page_table);
 	
-	// TODO Free heap
-	
-	// Free stack
-	vmem_free((uint8_t*)process->memory_start, process, STACK_SIZE);
+	// Free memory
+	vmem_free((uint8_t*)process->memory_start, process, MEMORY_SIZE);
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();

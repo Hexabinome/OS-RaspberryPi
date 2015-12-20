@@ -14,7 +14,7 @@ int process1()
 	momo = (int*)gmalloc(sizeof(int) * 10);
 	momo[0] = 1;
 	momo[4] = 4;
-	momo[15] = 9; // should fail
+	momo[10] = 9; // should fail
 	
 	return 0;
 }

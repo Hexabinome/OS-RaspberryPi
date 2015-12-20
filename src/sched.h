@@ -2,6 +2,7 @@
 #define _SCHED_H
 
 #include <stdint.h>
+#include "malloc.h"
 
 #define NBREG 13
 
@@ -13,14 +14,6 @@ enum PROCESS_STATUS
 };
 
 typedef int (func_t) (void);
-
-struct heap_block
-{
-	uint32_t size;
-	struct heap_block* next;
-	uint8_t is_free;
-};
-#define MEM_BLOCK_SIZE sizeof(struct mem_block)
 
 struct pcb_s
 {
