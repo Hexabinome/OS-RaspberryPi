@@ -36,9 +36,10 @@ void sched_init()
 	current_process->previous = current_process;
 	current_process->status = RUNNING;
 	current_process->priority = 1; // kmain priority
+	current_process->page_table = init_translation_table();
+	current_process->heap = NULL;
 
 	current_scheduler = &electRoundRobin; // Default scheduler
-	current_process->page_table = init_translation_table();
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -55,7 +56,7 @@ static void start_current_process()
 	sys_exit(0);
 }
 
-struct pcb_s* add_process(func_t* entry)
+static struct pcb_s* add_process(func_t* entry)
 {
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -94,8 +95,9 @@ struct pcb_s* add_process(func_t* entry)
 	configure_mmu_C((uint32_t)process->page_table);
 	
 	// Allocate stack
-	process->sp_end = vmem_alloc_for_userland(process, STACK_SIZE);
-	process->sp_user = (uint32_t*)(process->sp_end + STACK_SIZE);
+	process->memory_start = vmem_alloc_for_userland(process, STACK_SIZE);
+	process->sp_user = (uint32_t*)(process->memory_start + STACK_SIZE);
+	process->heap = NULL;
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -128,8 +130,10 @@ void free_process(struct pcb_s* process)
 	// Process to delete MMU mod
 	configure_mmu_C((uint32_t)process->page_table);
 	
-	//free stack
-	vmem_free((uint8_t*)process->sp_end, process, STACK_SIZE);
+	// TODO Free heap
+	
+	// Free stack
+	vmem_free((uint8_t*)process->memory_start, process, STACK_SIZE);
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
