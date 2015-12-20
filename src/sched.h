@@ -15,13 +15,22 @@ enum PROCESS_STATUS
 
 typedef int (func_t) (void);
 
+struct heap_block
+{
+	uint32_t size;
+	struct heap_block* next;
+	uint8_t is_free;
+};
+#define MEM_BLOCK_SIZE sizeof(struct mem_block)
+
 struct pcb_s
 {
 	uint32_t registers[NBREG];
 	uint32_t lr_svc;
 	uint32_t lr_user;
 	uint32_t* sp_user;
-	uint32_t sp_end;
+	uint32_t memory_start;
+	struct heap_block* heap;
 	uint32_t cpsr_user;
 	
 	func_t* entry;
