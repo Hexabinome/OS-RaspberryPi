@@ -43,7 +43,8 @@ tests = [
 #	["kmain-yield.c", "round-robin-fairness.gdb"],
 	["kmain-pagination.c", "pagination.gdb"],
 	["kmain-vmem-alloc-free.c", "vmem-alloc-free.gdb"],
-	["kmain-mmap-munmap.c", "sys-mmap-munmap.gdb"]
+	["kmain-mmap-munmap.c", "sys-mmap-munmap.gdb"],
+	["kmain-isolation.c", "isolation.gdb"]
 ]
 
 if __name__ == "__main__":
