@@ -58,3 +58,8 @@ void sem_up(struct sem_s* sem)
 	}
 	ENABLE_IRQ();
 }
+
+void sem_wait_for(struct sem_s* sem, unsigned int val)
+{
+	// TODO impl
+}
