@@ -94,7 +94,7 @@ unsigned int init_kern_translation_table(void)
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for (log_addr = 0; log_addr < kernel_heap_end; log_addr++)
+	for (log_addr = 0; log_addr < kernel_heap_end; log_addr += PAGE_SIZE)
 	{
 		first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_lvl_idx << 2));
@@ -115,7 +115,7 @@ unsigned int init_kern_translation_table(void)
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr++)
+	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr += PAGE_SIZE)
     {
         first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)table_base | (first_lvl_idx << 2));
@@ -147,7 +147,7 @@ uint32_t** init_translation_table(void)
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for (log_addr = 0; log_addr < kernel_heap_end; log_addr++)
+	for (log_addr = 0; log_addr < kernel_heap_end; log_addr += PAGE_SIZE)
 	{
 		first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
@@ -166,7 +166,7 @@ uint32_t** init_translation_table(void)
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr++)
+	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr += PAGE_SIZE)
     {
         first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
