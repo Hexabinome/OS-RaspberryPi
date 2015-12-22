@@ -36,11 +36,10 @@ void sched_init()
 	current_process->previous = current_process;
 	current_process->status = RUNNING;
 	current_process->priority = 1; // kmain priority
-	
+	current_process->page_table = init_translation_table();
 	current_process->next_waiting_sem = NULL;
 
 	current_scheduler = &electRoundRobin; // Default scheduler
-	current_process->page_table = init_translation_table();
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -60,7 +59,7 @@ static void start_current_process()
 	sys_exit(0);
 }
 
-struct pcb_s* add_process(func_t* entry)
+static struct pcb_s* add_process(func_t* entry)
 {
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -272,12 +271,13 @@ static void handle_irq(uint32_t* sp)
 	context_save_to_pcb(sp);
 
 	current_scheduler(); // calls current scheduler method
-	
-	// set translation table
+
+	// Set translation table
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
 	// Current process MMU mod
 	configure_mmu_C((uint32_t)current_process->page_table);
+
 
 	context_load_from_pcb(sp);
 }
@@ -290,7 +290,6 @@ void __attribute__((naked)) irq_handler()
 	// Save return address lr because there is a function call in this function
 	__asm("sub lr, #4");
 	__asm("stmfd sp!, {r0-r12, lr}");
-	//__asm("push {r0-r12, lr}"); // The same
 	
 	// Load right handler PC
 	// TODO if (timerInterrupt) handle_irq(); ??????

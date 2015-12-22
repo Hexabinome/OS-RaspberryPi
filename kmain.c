@@ -3,6 +3,8 @@
 #include "pwm.h"
 #include "hw.h"
 
+#define TEMP1 10000000
+#define TEMP2 20000000
 #define N 100
 
 struct sem_s mutex, vide, plein;
@@ -15,7 +17,8 @@ static void produire_objet(unsigned int* i)
 {
 	*i = obj++;
 	log_str("Produce\n");
-	for (int a = 0; a < 100000; ++a) ;
+	
+	for (int a = 0; a < TEMP2; ++a) ;
 }
 
 static void mettre_objet(unsigned int* i)
@@ -34,12 +37,14 @@ static void utiliser_objet(unsigned int* i)
 {
 	*i = -1;
 	log_str("Use\n");
-	for (int a = 0; a < 100000; ++a) ;
+	
+	for (int a = 0; a < TEMP1; ++a) ;
 }
 
 int producteur()
 {
 	unsigned int i;
+	
 	while (1)
 	{
 		produire_objet(&i);
@@ -59,6 +64,7 @@ int producteur()
 int consommateur()
 {
 	unsigned i;
+	
 	while (1)
 	{
 		sem_down(&plein);
