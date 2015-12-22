@@ -9,7 +9,8 @@ enum PROCESS_STATUS
 {
 	WAITING,
 	RUNNING,
-	TERMINATED
+	TERMINATED,
+	BLOCKED
 };
 
 typedef int (func_t) (void);
@@ -31,6 +32,8 @@ struct pcb_s
 	
 	struct pcb_s* next;
 	struct pcb_s* previous;
+	
+	struct pcb_s* next_waiting_sem;
 	
 	uint32_t** page_table;
 };

@@ -52,7 +52,6 @@ void electRoundRobin()
 
 void electDynamicPriority()
 {
-		
 	// Delete current if terminated (so a terminated process does not wait at the end of list)
 	if(current_process->status == TERMINATED)
 	{

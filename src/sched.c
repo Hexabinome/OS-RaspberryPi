@@ -36,6 +36,8 @@ void sched_init()
 	current_process->previous = current_process;
 	current_process->status = RUNNING;
 	current_process->priority = 1; // kmain priority
+	
+	current_process->next_waiting_sem = NULL;
 
 	current_scheduler = &electRoundRobin; // Default scheduler
 	current_process->page_table = init_translation_table();
@@ -80,6 +82,8 @@ struct pcb_s* add_process(func_t* entry)
 	lastProcess->next = process;
 	process->previous = lastProcess;
 	process->next = &kmain_process;
+	
+	process->next_waiting_sem = NULL;
 
 	// Initial status
 	process->status = WAITING;
