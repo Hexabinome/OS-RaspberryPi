@@ -33,7 +33,7 @@ static void mettre_objet(unsigned int* i)
 
 static void retirer_object(unsigned int* i)
 {
-	*i = chain[counter--];
+	*i = chain[--counter];
 	log_str("Take from chain ");
 	uart_send_int(*i);
 	log_str("\n");
