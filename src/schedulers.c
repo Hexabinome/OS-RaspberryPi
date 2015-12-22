@@ -38,17 +38,23 @@ void electRoundRobin()
 		
 		free_process(processToDelete);
 	}
+	else if (current_process->status  == BLOCKED)
+	{
+		current_process = current_process->next;
+	}
 	else
 	{
 		current_process->status = WAITING;
 		current_process = current_process->next;
 	}
 
-	if (current_process->status == TERMINATED)
+	if (current_process->status == TERMINATED || current_process->status  == BLOCKED)
 		electRoundRobin(); // Elect the next one, and delete the current one
 	else
 		current_process->status = RUNNING; // Else, this one is now running
 }
+
+// TODO refactor all schedulers + add blocked logic
 
 void electDynamicPriority()
 {

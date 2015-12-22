@@ -46,7 +46,10 @@ void sched_init()
 	INVALIDATE_TLB();
 	// Kernel MMU mod
 	configure_mmu_C((uint32_t) current_process->page_table);
-	
+}
+
+void irq_init()
+{
 	timer_init();
 	ENABLE_IRQ();
 }
@@ -71,7 +74,6 @@ struct pcb_s* add_process(func_t* entry)
 	
 	
 	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
-	process->cpsr_user &= 0b1111111111111111111111101111111; // Put interruptions ON
 
 	// Put the next process at the end of the list
 	struct pcb_s* lastProcess = current_process;
@@ -112,17 +114,13 @@ struct pcb_s* add_process(func_t* entry)
 
 void create_process(func_t* entry)
 {
-	DISABLE_IRQ();
 	add_process(entry);
-	ENABLE_IRQ();
 }
 
 void create_process_with_fix_priority(func_t* entry, int priority)
 {	
-	DISABLE_IRQ();
 	struct pcb_s* process = add_process(entry);
 	process->priority = priority;
-	ENABLE_IRQ();
 }
 
 void free_process(struct pcb_s* process)

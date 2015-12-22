@@ -1,5 +1,6 @@
 #include "sem.h"
 #include "config.h"
+#include "syscall.h"
 
 // TODO : operations must be atomic
 
@@ -31,16 +32,22 @@ void sem_down(struct sem_s* sem)
 			}
 			curr->next_waiting_sem = current_process;
 		}
+		sys_yield();
 	}
 }
 
 void sem_up(struct sem_s* sem)
 {
 	++(sem->counter);
-	if (sem->counter <= 0)
+	if (sem->counter <= 0 && sem->first_waiting != NULL)
 	{
 		struct pcb_s* unblocked_process = sem->first_waiting;
 		unblocked_process->status = WAITING;
+		
+		// Set the next first waiting process
 		sem->first_waiting = unblocked_process->next_waiting_sem;
+		
+		// Might already by NULL if it was the only or last process waiting for the semaphore
+		unblocked_process->next_waiting_sem = NULL;
 	}
 }
