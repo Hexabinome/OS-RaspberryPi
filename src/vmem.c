@@ -399,10 +399,9 @@ void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size)
 		// Free frame occupation table
 		uint32_t* phy_addr = get_phy_addr_from(get_second_lvl_descriptor_from(second_lvl_desc_addr), log_addr);
 		uint32_t frame_occupation_idx = (uint32_t) phy_addr / (uint32_t)FRAME_SIZE;
-		if (frame_table[frame_occupation_idx] == FRAME_FREE) // should not happen
-		{
-			PANIC();
-		}
+		
+		ASSERT(frame_table[frame_occupation_idx] != FRAME_FREE); // should not happen
+		
 		frame_table[frame_occupation_idx] = FRAME_FREE;
 		
 		// Set entry to forbidden address

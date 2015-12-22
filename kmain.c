@@ -1,8 +1,9 @@
+#include "syscall.h"
 #include "sched.h"
 #include "pwm.h"
 #include "malloc.h"
 
-int process1()
+static int process1()
 {
 	int* momo = (int*)gmalloc(sizeof(int) * 10);
 	momo[0] = 1;
@@ -19,15 +20,18 @@ int process1()
 	return 0;
 }
 
-
 void kmain()
 {
 	audio_init();
 	sched_init();
 
 	create_process(&process1);
+	irq_init();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	
-	while (1);
+	while (1)
+	{
+		sys_yield();
+	}
 }

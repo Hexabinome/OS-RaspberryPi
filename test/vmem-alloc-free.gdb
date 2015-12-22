@@ -100,10 +100,10 @@ break kmain-vmem-alloc-free.c:33
 commands
   p/x phy_addr
   break kFree
-	commands
-	  p $pc
-	  continue
-	end
+  commands
+    p $pc
+	continue
+  end
   continue
 end
 
