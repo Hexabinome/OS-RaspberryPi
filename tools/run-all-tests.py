@@ -44,7 +44,8 @@ tests = [
 	["kmain-pagination.c", "pagination.gdb"],
 	["kmain-vmem-alloc-free.c", "vmem-alloc-free.gdb"],
 	["kmain-mmap-munmap.c", "sys-mmap-munmap.gdb"],
-	["kmain-isolation.c", "isolation.gdb"]
+	["kmain-isolation.c", "isolation.gdb"],
+	["kmain-sem-mutex.c", "sem-mutex.gdb"]
 ]
 
 if __name__ == "__main__":

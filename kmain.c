@@ -16,7 +16,9 @@ static unsigned int chain[N];
 static void produire_objet(unsigned int* i)
 {
 	*i = obj++;
-	log_str("Produce\n");
+	log_str("Produce ");
+	uart_send_int(*i);
+	log_str("\n");
 	
 	for (int a = 0; a < TEMP2; ++a) ;
 }
@@ -24,19 +26,26 @@ static void produire_objet(unsigned int* i)
 static void mettre_objet(unsigned int* i)
 {
 	chain[counter++] = *i;
-	log_str("Put in chain\n");
+	log_str("Put in chain ");
+	uart_send_int(*i);
+	log_str("\n");
 }
 
 static void retirer_object(unsigned int* i)
 {
 	*i = chain[counter--];
-	log_str("Take from chain\n");
+	log_str("Take from chain ");
+	uart_send_int(*i);
+	log_str("\n");
 }
 
 static void utiliser_objet(unsigned int* i)
 {
+	log_str("Use ");
+	uart_send_int(*i);
+	log_str("\n");
+	
 	*i = -1;
-	log_str("Use\n");
 	
 	for (int a = 0; a < TEMP1; ++a) ;
 }
