@@ -58,7 +58,7 @@ commands
   continue
 end
 
-break kmain-sem.c:55
+break kmain-sem.c:53
 commands
   p $pc
   assert_results
@@ -86,7 +86,7 @@ define assert_results
   set $ok *= ($14 == process4+24)
   set $ok *= ($15 == sem_up+8)
   
-  set $ok *= ($16 == kmain+92)
+  set $ok *= ($16 == kmain+72)
   
   if $ok
     printf "test OK\n"

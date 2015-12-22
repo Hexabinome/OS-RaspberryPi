@@ -59,7 +59,14 @@ void sem_up(struct sem_s* sem)
 	ENABLE_IRQ();
 }
 
-void sem_wait_for(struct sem_s* sem, unsigned int val)
+void sem_wait_for(struct sem_s* sem, int val)
 {
-	// TODO impl
+	DISABLE_IRQ();
+	
+	while (sem->counter != val)
+	{
+		sys_yield();
+	}
+	
+	ENABLE_IRQ();
 }

@@ -49,7 +49,5 @@ void kmain()
 	
 	sem_init(&sem, 2);
 	
-	while (sem.counter != 3) ; // should be commented (until sem_wait_for is implemented)
-	
 	sem_wait_for(&sem, 3);
 }
