@@ -43,6 +43,8 @@ void kmain()
 	create_process(&process1);
 	create_process(&process2);
 	
+	irq_init();
+	
 	__asm("cps 0x10"); // CPU to USER mode
 	
 	int i = 0;
