@@ -358,7 +358,6 @@ uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size)
 				break;
 			}
 		}
-		//COUILLE ICI, on alloue 1 page en trop. Ou pas, parce addr phy 0x1000000 occupé / kernel
 		set_second_table_value(table_base, first_page + (i<<12), free_frame);
 	}
 	return (uint32_t)first_page;
