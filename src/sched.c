@@ -73,6 +73,7 @@ static struct pcb_s* add_process(func_t* entry)
 	
 	
 	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
+	process->cpsr_user &= 0b1111111111111111111111101111111; // Put interruptions ON
 
 	// Put the next process at the end of the list
 	struct pcb_s* lastProcess = current_process;
