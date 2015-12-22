@@ -10,16 +10,12 @@
 
 #define STACK_SIZE 10000
 
-unsigned int nbProcess;
-extern const uint8_t nb_tables_kernel_device; // For kernel & device, we have 0xFFFFFF addresse to store, 16 = 0xFFFFFF / (RAME_SIZE[4096] * SECON_LVL_TT_COUN[256])
-extern const uint16_t device_address_page_table_idx_start;
-extern const uint16_t device_address_page_table_idx_end;
 struct pcb_s* current_process;
 static struct pcb_s kmain_process;
 
-unsigned int MMUTABLEBASE; /* Page table address */
+unsigned int nb_process;
 
-void (*current_scheduler)(void); // pointer on the current scheduler function
+unsigned int MMUTABLEBASE; /* Page table address */
 
 void sched_init()
 {
@@ -38,13 +34,12 @@ void sched_init()
 	current_process->priority = 1; // kmain priority
 	current_process->page_table = init_translation_table();
 	current_process->next_waiting_sem = NULL;
-
-	current_scheduler = &electRoundRobin; // Default scheduler
-	
+		
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
 	// Kernel MMU mod
-	configure_mmu_C((uint32_t) current_process->page_table);
+	configure_mmu_C((uint32_t) current_process->page_table);	
+	nb_process = 1;
 }
 
 void irq_init()
@@ -71,25 +66,15 @@ static struct pcb_s* add_process(func_t* entry)
 	process->entry = entry;
 	process->lr_svc = (uint32_t)&start_current_process;
 	
-	
-	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user)); // TODO : pourquoi nécessaire d'initialiser CPSR
+	// Read the execution mode of the process
+	__asm("mrs %0, cpsr" : "=r"(process->cpsr_user));
 	process->cpsr_user &= 0b1111111111111111111111101111111; // Put interruptions ON
 
-	// Put the next process at the end of the list
-	struct pcb_s* lastProcess = current_process;
-	while (lastProcess->next != &kmain_process)
-	{
-		lastProcess = lastProcess->next;
-	}
-	lastProcess->next = process;
-	process->previous = lastProcess;
-	process->next = &kmain_process;
-	
+	// Initialize semaphore waiting list
 	process->next_waiting_sem = NULL;
 
 	// Initial status
 	process->status = WAITING;
-	++nbProcess;
 	
 	process->page_table = init_translation_table();
 	
@@ -108,6 +93,17 @@ static struct pcb_s* add_process(func_t* entry)
 	// Current process MMU mod
 	configure_mmu_C((uint32_t)current_process->page_table);
 	
+	// Put the next process at the end of the list
+	struct pcb_s* last_process = current_process;
+	while (last_process->next != &kmain_process)
+	{
+		last_process = last_process->next;
+	}
+	last_process->next = process;
+	process->previous = last_process;
+	process->next = &kmain_process;
+	
+	++nb_process; // One more process
 	
 	return process;	
 }
@@ -147,6 +143,8 @@ void free_process(struct pcb_s* process)
 	INVALIDATE_TLB();
 	// Current process MMU mod
 	configure_mmu_C((uint32_t)current_process->page_table);
+	
+	--nb_process;
 }
 
 void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
@@ -181,7 +179,7 @@ void do_sys_yieldto(uint32_t* sp) // Points on saved r0 in stack
 
 }
 
-void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
+static void context_load_from_pcb_svc(uint32_t* sp)
 {
 	// Save current context
 	__asm("cps 0b11111"); // System mode
@@ -191,21 +189,17 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 
 	__asm("mrs %0, spsr" : "=r"(current_process->cpsr_user)); // Save user CPSR, which has been copied at swi in SPSR_svc
 
-	int i;
+	uint8_t i;
 	for (i = 0; i < NBREG; ++i)
 	{
 		current_process->registers[i] = sp[i];
 	}
 	current_process->lr_svc = sp[NBREG];
+}
 
-	// Elects new current process
-	current_scheduler();
-
-	// Set transalation table
-	INVALIDATE_TLB();
-	// Current process MMU mod
-	configure_mmu_C((uint32_t)current_process->page_table);
-
+static void context_save_to_pcb_svc(uint32_t* sp)
+{
+	uint8_t i;
 	// Update context which will be reloaded
 	for (i = 0; i < NBREG; ++i)
 	{
@@ -219,18 +213,29 @@ void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
 	__asm("cps 0b10011"); // SVC mode
 
 	__asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
-	
+}
+
+void do_sys_yield(uint32_t* sp) // Points on saved r0 in stack
+{
+	context_load_from_pcb_svc(sp);
+
+	// Elects new current process
+	elect();
+
+	context_save_to_pcb_svc(sp);
 }
 
 void do_sys_exit(uint32_t* sp) // Points on saved r0 in stack
 {
 	current_process->status = TERMINATED;
 	current_process->return_code = *(sp+1);
-
-	sys_yield();
+	
+	elect();
+	
+	context_save_to_pcb_svc(sp);
 }
 
-static void context_save_to_pcb(uint32_t* sp) // Points to the beginning of process context in stack
+static void context_save_to_pcb_irq(uint32_t* sp) // Points to the beginning of process context in stack
 {
 	__asm("cps 0b11111"); // System mode
 	__asm("mov %0, lr" : "=r"(current_process->lr_user)); // Save lr_user
@@ -247,7 +252,7 @@ static void context_save_to_pcb(uint32_t* sp) // Points to the beginning of proc
 	current_process->lr_svc = sp[NBREG];
 }
 
-static void context_load_from_pcb(uint32_t* sp) // Points to the beginning of process context in stack
+static void context_load_from_pcb_irq(uint32_t* sp) // Points to the beginning of process context in stack
 {
 	int i;
 	// Update context which will be reloaded
@@ -269,9 +274,9 @@ static void context_load_from_pcb(uint32_t* sp) // Points to the beginning of pr
 
 static void handle_irq(uint32_t* sp)
 {
-	context_save_to_pcb(sp);
+	context_save_to_pcb_irq(sp);
 
-	current_scheduler(); // calls current scheduler method
+	elect(); // calls current scheduler method
 
 	// Set translation table
 	// Invalidate TLB entries
@@ -280,7 +285,7 @@ static void handle_irq(uint32_t* sp)
 	configure_mmu_C((uint32_t)current_process->page_table);
 
 
-	context_load_from_pcb(sp);
+	context_load_from_pcb_irq(sp);
 }
 
 void __attribute__((naked)) irq_handler()
@@ -308,30 +313,4 @@ void __attribute__((naked)) irq_handler()
 
 	// Reload registers, put return address (lr_irq) into pc to get back to interrupted code, and load spsr => change back CPU mode
 	__asm("ldmfd sp!, {r0-r12, pc}^");
-}
-
-void do_sys_setscheduler(uint32_t* sp)
-{
-	uint32_t scheduler = *(sp+1);
-	uint8_t return_val = 0;
-	
-	switch (scheduler)
-	{
-		case ROUND_ROBIN_SCHED:
-			current_scheduler = &electRoundRobin;
-			break;
-		case RANDOM_SCHED:
-			current_scheduler = &electRandom;
-			break;
-		case FIXED_PRIORITY_SCHED:
-			current_scheduler = &electFixPriority;
-			break;
-		case DYNAMIC_PRIORITY_SCHED:
-			current_scheduler = &electDynamicPriority;
-			break;
-		default:
-			return_val = -1;
-	}
-	
-	*sp = return_val;
 }

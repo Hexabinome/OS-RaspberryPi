@@ -9,9 +9,6 @@ enum SCHEDULERS
 	DYNAMIC_PRIORITY_SCHED
 };
 
-void electRoundRobin();
-void electRandom();
-void electFixPriority();
-void electDynamicPriority();
+void elect();
 
 #endif // SCHEDULERS_H

@@ -1,237 +1,179 @@
 #include "schedulers.h"
 #include "sched.h"
 #include "hw.h"
+#include "asm_tools.h"
+#include "vmem.h"
 
 extern struct pcb_s* current_process;
-extern unsigned int nbProcess;
+extern unsigned int nb_process;
+
+static void electRoundRobin();
+static void electRandom();
+static void electFixPriority();
+static void electDynamicPriority();
+
+static void (*current_scheduler)() = &electRoundRobin; // pointer on the current scheduler function
 
 /* ** Random generator ** */
 short x = 1;
 short a = 31541;
 short c = 1;
 
-int getRandomNb()
+static uint32_t get_random()
 {
 	x = a*x + c;
 	
-	int result = (int) x;
+	int result = (uint32_t) x;
 
 	// Sachant que le modulo coute cher, on utilise 
 	//		un masque pour réduire le nombre aléatoire
 	return (result & 127);
 }
 
+static void terminate_if_last_process()
+{
+	if (current_process == current_process->next && current_process == current_process->previous)
+	{
+		terminate_kernel();
+	}
+}
+
 /* ** Scheduler functions ** */
-void electRoundRobin()
+static void electRoundRobin()
+{
+	current_process = current_process->next;
+}
+
+static void electRandom()
+{
+	// Generate random number
+	uint32_t random_nb = get_random();
+
+	uint64_t division = divide(random_nb, nb_process);
+	int modulo = division * nb_process;
+
+	// On calcule un nombre d'iteration a partir du randomNB (sachant que c'est pas une numero entro 0 et 1 mais entre min int et max int)
+	int random_it = (random_nb - modulo) + 1;
+	
+	// on choisi le processus suivant 'randomIteration' fois
+	uint32_t i;
+	for (i = 0; i < random_it; ++i) 
+	{
+		current_process = current_process->next;
+	}
+}
+
+static void electFixPriority()
+{
+	struct pcb_s* process_to_choose = current_process->next;
+
+	uint32_t i;
+	for (i = 0; i < nb_process; ++i)
+	{
+		current_process = current_process->next;
+
+		if (process_to_choose->priority < current_process->priority)
+		{
+			process_to_choose = current_process;
+		}
+	}
+
+	current_process = process_to_choose;
+}
+
+static void electDynamicPriority()
+{
+	struct pcb_s* process_to_choose = current_process->next;
+
+	uint32_t i;
+	for (i = 0; i < nb_process; ++i)
+	{
+		current_process = current_process->next;
+
+		if (process_to_choose->priority < current_process->priority)
+		{
+			process_to_choose = current_process;
+		}
+		else
+		{
+			(current_process->priority)++;
+		}
+	}
+
+	current_process = process_to_choose;
+	
+	// to avoid a negativ priority
+	if (current_process->priority > 0)
+	{
+		(current_process->priority)--;
+	}
+}
+
+static void choose_next_process()
+{
+	current_scheduler();
+		
+	// Set transalation table
+	INVALIDATE_TLB();
+	// Current process MMU mod
+	configure_mmu_C((uint32_t)current_process->page_table);
+}
+
+/* *** External visible functions *** */
+void elect()
 {
 	// Delete current if terminated (so a terminated process does not wait at the end of list)
 	if (current_process->status == TERMINATED)
 	{
-		// If it is the last process
-		if (current_process == current_process->next && current_process == current_process->previous)
-			terminate_kernel();
+		terminate_if_last_process();
 
 		current_process->previous->next = current_process->next;
 		current_process->next->previous = current_process->previous;
-		struct pcb_s* processToDelete = current_process;
-		current_process = current_process->next;
 		
-		free_process(processToDelete);
+		struct pcb_s* process_to_delete = current_process;
+		
+		choose_next_process();
+		
+		free_process(process_to_delete);
 	}
 	else if (current_process->status  == BLOCKED)
 	{
-		current_process = current_process->next;
+		choose_next_process();
 	}
 	else
 	{
 		current_process->status = WAITING;
-		current_process = current_process->next;
+		choose_next_process();
 	}
-
+	
 	if (current_process->status == TERMINATED || current_process->status  == BLOCKED)
-		electRoundRobin(); // Elect the next one, and delete the current one
+		elect(); // Elect the next one, and delete the current one
 	else
 		current_process->status = RUNNING; // Else, this one is now running
 }
 
-// TODO refactor all schedulers + add blocked logic
-
-void electDynamicPriority()
+void do_sys_setscheduler(uint32_t* sp)
 {
-	// Delete current if terminated (so a terminated process does not wait at the end of list)
-	if(current_process->status == TERMINATED)
+	uint32_t scheduler = *(sp+1);
+	int8_t return_val = 0;
+	
+	switch (scheduler)
 	{
-		// If it is the last process
-		if (current_process == current_process->next && current_process == current_process->previous)
-			terminate_kernel();
-		
-		struct pcb_s* processToDelete = current_process;
-		
-		struct pcb_s* processToChoose = current_process->next;
-		
-		current_process->previous->next = current_process->next;
-		current_process->next->previous = current_process->previous;
-
-		// on choisi le processus suivant 'randomIteration' fois
-		for(int i=0; i<(nbProcess);i++)
-		{
-			current_process = current_process->next;
-			if(processToChoose->priority < current_process->priority)
-			{
-				processToChoose = current_process;
-				
-			}
-			else{
-				current_process->priority += 1;
-			}
-		}
-
-		current_process = processToChoose;
-		// to avoid a negativ priority
-		if (current_process->priority > 0)
-		{
-			current_process->priority -= 1;
-		}
-		
-		free_process(processToDelete);
-		nbProcess = nbProcess-1;
+		case ROUND_ROBIN_SCHED:
+			current_scheduler = &electRoundRobin;
+			break;
+		case RANDOM_SCHED:
+			current_scheduler = &electRandom;
+			break;
+		case FIXED_PRIORITY_SCHED:
+			current_scheduler = &electFixPriority;
+			break;
+		case DYNAMIC_PRIORITY_SCHED:
+			current_scheduler = &electDynamicPriority;
+			break;
+		default:
+			return_val = -1;
 	}
-	else
-	{
-		struct pcb_s* processToChoose = current_process;
-		current_process->status = WAITING;
-
-		for(int i=0; i<(nbProcess);i++)
-		{
-			current_process = current_process->next;
-
-			if(processToChoose->priority < current_process->priority) {
-
-				processToChoose = current_process;
-			}
-			else{
-				current_process->priority += 1;
-			}
-		}
-
-		current_process = processToChoose;
-		// to avoid a negativ priority
-		if (current_process->priority > 0)
-		{
-			current_process->priority -= 1;
-		}
-	}
-
-	if (current_process->status == TERMINATED)
-		electDynamicPriority(); // Elect the next one, and delete the current one
-	else
-		current_process->status = RUNNING; // Else, this one is now running
-}
-
-void electFixPriority()
-{
-		
-	// Delete current if terminated (so a terminated process does not wait at the end of list)
-	if(current_process->status == TERMINATED)
-	{
-		// If it is the last process
-		if (current_process == current_process->next && current_process == current_process->previous)
-			terminate_kernel();
-		
-		struct pcb_s* processToDelete = current_process;
-		
-		struct pcb_s* processToChoose = current_process->next;
-		
-		current_process->previous->next = current_process->next;
-		current_process->next->previous = current_process->previous;
-
-		// on choisi le processus suivant 'randomIteration' fois
-		for(int i=0; i<(nbProcess);i++)
-		{
-			current_process = current_process->next;
-			if(processToChoose->priority < current_process->priority)
-			{
-				processToChoose = current_process;
-			}
-		}
-
-		current_process = processToChoose;
-		
-		free_process(processToDelete);
-		nbProcess = nbProcess-1;
-	}
-	else
-	{
-		struct pcb_s* processToChoose = current_process;
-		current_process->status = WAITING;
-
-		for(int i=0; i<(nbProcess);i++)
-		{
-			current_process = current_process->next;
-
-			if(processToChoose->priority < current_process->priority) {
-
-				processToChoose = current_process;
-			}
-		}
-
-		current_process = processToChoose;
-	}
-
-	if (current_process->status == TERMINATED)
-		electFixPriority(); // Elect the next one, and delete the current one
-	else
-		current_process->status = RUNNING; // Else, this one is now running
-}
-
-void electRandom()
-{
-	//On genere le nombre aléatoire entre min et max int.
-	int randomNb = getRandomNb();
-
-	uint64_t division = divide(randomNb, (nbProcess));
-	int moduloAide = division * (nbProcess);
-
-	//On calcule un nombre d'iteration a partir du randomNB (sachant que c'est pas une numero entro 0 et 1 mais entre min int et max int)
-	int randomIteration = randomNb - moduloAide;
-
-	// Delete current if terminated (so a terminated process does not wait at the end of list)
-	if (current_process->status == TERMINATED)
-	{
-		// If it is the last process
-		if (current_process == current_process->next && current_process == current_process->previous)
-			terminate_kernel();
-		
-		struct pcb_s* processToDelete = current_process;
-		
-
-		int i = 0;
-		
-		// on enleve le maillon de la chaine		
-		current_process->previous->next = current_process->next;
-		current_process->next->previous = current_process->previous;
-
-		// on choisi le processus suivant 'randomIteration' fois
-		for (i = 0; i < randomIteration; i++) 
-		{
-			current_process = current_process->next;
-		}
-		
-		free_process(processToDelete);
-		nbProcess = nbProcess-1;
-	}
-	else
-	{
-		current_process->status = WAITING;
-		int j=0;
-		for(j=0;j<randomIteration;j++)
-		{
-			current_process = current_process->next;
-		}
-	}
-
-	if (current_process->status == TERMINATED)
-		electRandom(); // Elect the next one, and delete the current one
-	else
-		current_process->status = RUNNING; // Else, this one is now running
+	
+	*sp = return_val;
 }

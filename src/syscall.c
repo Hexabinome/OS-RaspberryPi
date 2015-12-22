@@ -149,7 +149,7 @@ int sys_setscheduler(int scheduler)
 	return return_value;
 }
 
-void do_sys_setscheduler(uint32_t* scheduler); // implemented in sched.c
+void do_sys_setscheduler(uint32_t* scheduler); // implemented in schedulers.c
 
 void __attribute__((naked)) swi_handler()
 {
