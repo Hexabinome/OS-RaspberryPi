@@ -1,6 +1,7 @@
 #include "sem.h"
 #include "config.h"
 #include "syscall.h"
+#include "asm_tools.h"
 
 // TODO : operations must be atomic
 
@@ -8,12 +9,15 @@ extern struct pcb_s* current_process;
 
 void sem_init(struct sem_s* sem, unsigned int val)
 {
+	DISABLE_IRQ();
 	sem->counter = val;
 	sem->first_waiting = NULL;
+	ENABLE_IRQ();
 }
 
 void sem_down(struct sem_s* sem)
 {
+	DISABLE_IRQ();
 	--(sem->counter);
 	if (sem->counter < 0)
 	{
@@ -34,10 +38,12 @@ void sem_down(struct sem_s* sem)
 		}
 		sys_yield();
 	}
+	ENABLE_IRQ();
 }
 
 void sem_up(struct sem_s* sem)
 {
+	DISABLE_IRQ();
 	++(sem->counter);
 	if (sem->counter <= 0 && sem->first_waiting != NULL)
 	{
@@ -50,4 +56,5 @@ void sem_up(struct sem_s* sem)
 		// Might already by NULL if it was the only or last process waiting for the semaphore
 		unblocked_process->next_waiting_sem = NULL;
 	}
+	ENABLE_IRQ();
 }
