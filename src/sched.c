@@ -34,10 +34,10 @@ void sched_init()
 	current_process->status = RUNNING;
 	current_process->priority = 1; // kmain priority
 	current_process->page_table = init_translation_table();
-	current_process->next_waiting_sem = NULL;
 	current_process->heap = NULL;
+	current_process->next_waiting_sem = NULL;
 
-	// Invalidate TLB entries
+    // Invalidate TLB entries
 	INVALIDATE_TLB();
 	// Kernel MMU mod
 	configure_mmu_C((uint32_t) current_process->page_table);
@@ -85,8 +85,6 @@ static struct pcb_s* add_process(func_t* entry)
 	INVALIDATE_TLB();
 	//process MMU mod
 	configure_mmu_C((uint32_t)process->page_table);
-
-
 	// Allocate memory (stack + heap)
 	process->memory_start = vmem_alloc_for_userland(process, MEMORY_SIZE);
 	process->sp_user = (uint32_t*)(process->memory_start + MEMORY_SIZE);
@@ -94,7 +92,6 @@ static struct pcb_s* add_process(func_t* entry)
 	process->heap->is_free = TRUE;
 	process->heap->next = process->heap;
 	process->heap->size = HEAP_SIZE - HEAP_BLOCK_SIZE;
-
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
 	// Current process MMU mod
