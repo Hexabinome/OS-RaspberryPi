@@ -14,13 +14,13 @@ static struct heap_block* find_free_block(uint32_t size)
 	{
 		current_block = current_block->next;
 	}
-	
+
 	if (current_block->is_free && current_block->size >= size)
 	{
-		
+
 		return current_block;
 	}
-	
+
 	// No free block
 	return NULL;
 }
@@ -28,14 +28,14 @@ static struct heap_block* find_free_block(uint32_t size)
 void* gmalloc(unsigned int size)
 {
 	struct heap_block* new_block;
-	
+
 	// Find first free block, which is big enough
 	new_block = find_free_block(size);
 	if (new_block == NULL) // no free block found
 	{
 		return NULL;
 	}
-	
+
 	if (new_block->size == size) // If the block has the exact size
 	{
 		new_block->is_free = FALSE;
@@ -46,13 +46,13 @@ void* gmalloc(unsigned int size)
 		new_second_block->is_free = TRUE;
 		new_second_block->size = (new_block->size + HEAP_BLOCK_SIZE) - (size + HEAP_BLOCK_SIZE); // TODO correct ?
 		new_second_block->next = new_block->next;
-		
+
 		new_block->is_free = FALSE;
 		new_block->size = size;
 		new_block->next = new_second_block;
 	}
-	
-	
+
+
 	// Meta data of block is stored at first position. block* + 1 => the first available address for the user
 	return (new_block+1);
 }
@@ -63,21 +63,26 @@ void gfree(void* addr)
 	{
 		PANIC();
 	}
-	
+
 	struct heap_block* block = ((struct heap_block*) addr) - 1;
-	
+
 	if (block->is_free) // if free, error
 	{
 		PANIC();
 	}
-	
+
 	block->is_free = TRUE;
-	
+
 	// Fusion with next block if free
+    // mb we should watch previous block
+    // a = galloc();
+    // b = galloc();
+    // c = galloc();
+    // free(a);free(b);free(c); -> no merge
 	struct heap_block* next_block = block->next;
 	if (next_block->is_free && next_block != block)
 	{
-		block->size += next_block->size;
+		block->size += next_block->size;//Metadata of second block are deleted so block->size += (next_block->size + HEAP_BLOCK_SIZE) ?
 		block->next = next_block->next;
 	}
 }
