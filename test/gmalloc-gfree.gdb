@@ -9,22 +9,26 @@ commands
   continue
 end
 
+break kmain-gmalloc-gfree.c:10
+commands
+  p/x diff
+  continue
+end
 
-
-break kmain-gmalloc-gfree.c:13
+break kmain-gmalloc-gfree.c:17
 commands
   p/x test1
   p/x test2
   continue
 end
-break kmain-gmalloc-gfree.c:26
+break kmain-gmalloc-gfree.c:30
 commands
   p/x a
   p/x aa
   continue
 end
 
-break kmain-gmalloc-gfree.c:27
+break kmain-gmalloc-gfree.c:31
 commands
 	assert_results
 end
@@ -32,10 +36,11 @@ end
 
 define assert_results
   set $ok = 1
-
-  set $ok *= ($1 == $2)
+  set $ok *= $2
 
   set $ok *= ($3 == $4)
+
+  set $ok *= ($5 == $6)
 
  if $ok
     printf "test OK\n"

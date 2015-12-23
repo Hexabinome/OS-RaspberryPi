@@ -1,12 +1,12 @@
 #include "sched.h"
 #include "malloc.h"
+#include "syscall.h"
 
-void kmain()
+static int process1()
 {
-	sched_init();
 
-    int* t1 = (int*)=gmalloc(sizeof(int));
-    int* t2 = (int*)=gmalloc(sizeof(int));
+    int* t1 = (int*)gmalloc(sizeof(int));
+    int* t2 = (int*)gmalloc(sizeof(int));
     int diff = (((int)t1 - (int)t2)==(HEAP_BLOCK_SIZE+sizeof(int)));
     //diff should be HEAP_BLOCK_SIZE+sizeof(int)
 
@@ -29,6 +29,14 @@ void kmain()
     int* aa = (int*)gmalloc(sizeof(int)*2);
     gfree(aa);
     //aa and a should have the same value
+    diff++;
+    return 0;
+}
 
-
+void kmain()
+{
+    sched_init();
+    create_process(&process1);
+    irq_init();
+    sys_yield();
 }
