@@ -36,7 +36,6 @@ void sched_init()
 	current_process->page_table = init_translation_table();
 	current_process->next_waiting_sem = NULL;
 	current_process->heap = NULL;
-	current_scheduler = &electRoundRobin; // Default scheduler
 
 	// Invalidate TLB entries
 	INVALIDATE_TLB();

@@ -19,21 +19,12 @@ int process1()
 	return 0;
 }
 
-static void retirer_object(unsigned int* i)
-{
-	*i = chain[--counter];
-	log_str("Take from chain ");
-	uart_send_int(*i);
-	log_str("\n");
-}
-
 void kmain()
 {
 	audio_init();
 	sched_init();
 
-	create_process(&producteur);
-	create_process(&consommateur);
+	create_process(&process1);
 
 	irq_init();
 
