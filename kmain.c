@@ -14,7 +14,9 @@ int process1()
 	momo = (int*)gmalloc(sizeof(int) * 10);
 	momo[0] = 1;
 	momo[4] = 4;
-	momo[10] = 9; // should fail
+	momo[10] = 9; // should fail->
+     //tested with the real C malloc, doesn't fail you can access to indexes out
+    //of the table while it's in your allocated pages i think
 
 	return 0;
 }
