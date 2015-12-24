@@ -13,10 +13,10 @@ kernel_for_sdcard: kernel_for_qemu build/kernel.img
 remake: clean all
 
 # options à passer au compilateur C
-CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
+CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -I libcsud_inc/
 
 # options à passer à la fois au compilateur C et à l'assembleur
-COMMON_FLAGS=-mcpu=arm1176jzf-s
+COMMON_FLAGS=-mcpu=arm1176jzf-s -mfloat-abi=soft -mfpu=fpv4-sp-d16
 
 # Object files (excluding kmain)
 OBJECTS=build/tune.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
@@ -72,7 +72,7 @@ build/%.o: src/%.s | build
 
 # édition de liens
 build/kernel.elf: $(OBJECTS) build/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T src/sysif.ld -Map build/mapfile.map
+	arm-none-eabi-ld $^ -o $@ -T src/sysif.ld -Map build/mapfile.map -L lib/ -l csud
 
 # conversion de l'image pour transfert sur carte SD
 build/kernel.img: build/kernel.elf

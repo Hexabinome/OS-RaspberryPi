@@ -14,7 +14,7 @@ b kernel_panic
 
 b *kmain
 #b *swi_handler
-b *irq_handler
+#b *irq_handler
 b *sys_exit
 
 source utils.gdb

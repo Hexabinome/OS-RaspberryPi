@@ -39,7 +39,7 @@ struct pcb_s
 };
 
 void sched_init();
-void irq_init();
+void sched_start();
 void create_process(func_t* entry);
 void create_process_with_fix_priority(func_t* entry, int priority);
 void free_process(struct pcb_s* process);

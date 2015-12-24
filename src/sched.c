@@ -42,7 +42,7 @@ void sched_init()
 	nb_process = 1;
 }
 
-void irq_init()
+void sched_start()
 {
 	timer_init();
 	ENABLE_IRQ();
