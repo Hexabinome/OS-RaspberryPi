@@ -30,6 +30,9 @@ static int process1()
     gfree(aa);
     //aa and a should have the same value
     diff++;
+    
+    // The heap pointer of the current process should point on a heap_block 
+    
     return 0;
 }
 

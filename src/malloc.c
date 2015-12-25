@@ -62,17 +62,24 @@ void gfree(void* addr)
 	ASSERT(!(block->is_free)); // block must be taken
 
 	block->is_free = TRUE;
-
-	// Fusion with next block if free
+	
     // mb we should watch previous block
-    // a = galloc();
-    // b = galloc();
-    // c = galloc();
-    // free(a);free(b);free(c); -> no merge
+    
+    // Fusion with next block if free
 	struct heap_block* next_block = block->next;
 	if (next_block->is_free && next_block != block)
 	{
 		block->size += next_block->size;//Metadata of second block are deleted so block->size += (next_block->size + HEAP_BLOCK_SIZE) ?
 		block->next = next_block->next;
 	}
+	
+	// TODO solution for this current problem :
+	// a = galloc();
+    // b = galloc();
+    // c = galloc();
+    // free(a);free(b);free(c); -> no merge
+    // IMPORTANT : current_process->heap must always point on heap_block!
+    // 1. double chained list (and try to merge with previous block), but possibly no more heap_block on curr_pro->heap
+    // 2. when freeing every block with the next one, beginning with the freed one (same pb as above)
+    // 3. iterate over whole list at each free, beginning with the first one everytime (works but it cpu consuming)
 }

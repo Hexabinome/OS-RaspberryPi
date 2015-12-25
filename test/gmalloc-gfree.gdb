@@ -25,10 +25,14 @@ break kmain-gmalloc-gfree.c:30
 commands
   p/x a
   p/x aa
+  
+  p/x current_process->heap
+  p/x (((struct heap_block*)aa) - 1)->next
+  
   continue
 end
 
-break kmain-gmalloc-gfree.c:31
+break kmain-gmalloc-gfree.c:36
 commands
 	assert_results
 end
@@ -42,6 +46,9 @@ define assert_results
   set $ok *= ($3 == $4)
 
   set $ok *= ($5 == $6)
+  
+  set $ok *= ($6 == $7)
+  set $ok *= ($7 == $8)
 
  if $ok
     printf "test OK\n"
