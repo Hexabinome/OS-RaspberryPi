@@ -47,7 +47,8 @@ tests = [
 	["kmain-isolation.c", "isolation.gdb"],
 	["kmain-sem-mutex.c", "sem-mutex.gdb"],
 	["kmain-schedulers.c", "schedulers.gdb"],
-	["kmain-sem.c", "sem.gdb"]
+	["kmain-sem.c", "sem.gdb"],
+	["kmain-gmalloc-gfree.c", "gmalloc-gfree.gdb"]
 ]
 
 if __name__ == "__main__":
