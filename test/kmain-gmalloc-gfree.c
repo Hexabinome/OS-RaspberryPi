@@ -7,7 +7,9 @@ static int process1()
 
     int* t1 = (int*)gmalloc(sizeof(int));
     int* t2 = (int*)gmalloc(sizeof(int));
-    int diff = ((int) t1 - (int) t2) == (HEAP_BLOCK_SIZE + sizeof(int));
+    int diff = ((uint32_t) t2 - (uint32_t) t1) == (HEAP_BLOCK_SIZE + sizeof(int));
+    gfree(t1);
+    gfree(t2);
     //diff should be HEAP_BLOCK_SIZE+sizeof(int)
 
     //test if block is correctly freed
@@ -27,9 +29,10 @@ static int process1()
     gfree(c);
 
     int* aa = (int*)gmalloc(sizeof(int)*2);
-    gfree(aa);
     //aa and a should have the same value
-    diff++;
+    gfree(aa);
+    struct heap_block* start_heap = ((struct heap_block*) gmalloc(3 * sizeof(int))) - 1; // should be at the beginning
+    diff++; start_heap++;
     
     // The heap pointer of the current process should point on a heap_block 
     

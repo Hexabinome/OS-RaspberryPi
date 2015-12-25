@@ -41,7 +41,7 @@ void* gmalloc(unsigned int size)
 	}
 	else // The found block is too big, split it
 	{
-		struct heap_block* new_second_block = (new_block + size + HEAP_BLOCK_SIZE);
+		struct heap_block* new_second_block = (struct heap_block*) (((uint32_t) new_block) + size + HEAP_BLOCK_SIZE);
 		new_second_block->is_free = TRUE;
 		new_second_block->size = (new_block->size + HEAP_BLOCK_SIZE) - (size + HEAP_BLOCK_SIZE); // TODO correct ?
 		new_second_block->next = new_block->next;
@@ -63,15 +63,30 @@ void gfree(void* addr)
 
 	block->is_free = TRUE;
 	
-    // mb we should watch previous block
-    
-    // Fusion with next block if free
-	struct heap_block* next_block = block->next;
-	if (next_block->is_free && next_block != block)
+    // Fusion each block with next on if possible, multiple tries
+	struct heap_block* next_block;
+	uint8_t changed;
+	do
 	{
-		block->size += next_block->size;//Metadata of second block are deleted so block->size += (next_block->size + HEAP_BLOCK_SIZE) ?
-		block->next = next_block->next;
-	}
+		block = current_process->heap;
+		next_block = block->next;
+		changed = FALSE;
+		while (next_block != current_process->heap)
+		{
+			if (block->is_free && next_block->is_free)
+			{
+				block->size += next_block->size;//Metadata of second block are deleted so block->size += (next_block->size + HEAP_BLOCK_SIZE) ?
+				block->next = next_block->next;
+				changed = TRUE;
+			}
+			else
+			{
+				block = next_block;
+			}
+			next_block = block->next;
+			
+		}
+	} while (changed);
 	
 	// TODO solution for this current problem :
 	// a = galloc();

@@ -9,30 +9,32 @@ commands
   continue
 end
 
-break kmain-gmalloc-gfree.c:14
+break kmain-gmalloc-gfree.c:11
 commands
   p diff
   continue
 end
 
-break kmain-gmalloc-gfree.c:21
+break kmain-gmalloc-gfree.c:23
 commands
   p/x test1
   p/x test2
   continue
 end
-break kmain-gmalloc-gfree.c:30
+break kmain-gmalloc-gfree.c:33
 commands
   p/x a
   p/x aa
-  
+  continue
+end
+break kmain-gmalloc-gfree.c:35
+commands
+  p/x start_heap
   p/x current_process->heap
-  p/x (((struct heap_block*)aa) - 1)->next
-  
   continue
 end
 
-break kmain-gmalloc-gfree.c:36
+break kmain-gmalloc-gfree.c:39
 commands
 	assert_results
 end
@@ -47,7 +49,6 @@ define assert_results
 
   set $ok *= ($5 == $6)
   
-  set $ok *= ($6 == $7)
   set $ok *= ($7 == $8)
 
  if $ok
