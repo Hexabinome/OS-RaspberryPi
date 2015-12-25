@@ -55,17 +55,11 @@ void* gmalloc(unsigned int size)
 
 void gfree(void* addr)
 {
-	if (addr < 0) // if negative address
-	{
-		PANIC();
-	}
+	ASSERT(addr >= 0); // address must be positive
 
 	struct heap_block* block = ((struct heap_block*) addr) - 1;
 
-	if (block->is_free) // if free, error
-	{
-		PANIC();
-	}
+	ASSERT(!(block->is_free)); // block must be taken
 
 	block->is_free = TRUE;
 

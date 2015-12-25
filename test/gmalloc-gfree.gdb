@@ -9,13 +9,13 @@ commands
   continue
 end
 
-break kmain-gmalloc-gfree.c:10
+break kmain-gmalloc-gfree.c:14
 commands
-  p/x diff
+  p diff
   continue
 end
 
-break kmain-gmalloc-gfree.c:17
+break kmain-gmalloc-gfree.c:21
 commands
   p/x test1
   p/x test2
@@ -36,6 +36,7 @@ end
 
 define assert_results
   set $ok = 1
+  set $ok *= ($1 == vmem_init+4)
   set $ok *= $2
 
   set $ok *= ($3 == $4)

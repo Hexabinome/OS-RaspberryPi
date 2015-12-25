@@ -7,7 +7,7 @@ static int process1()
 
     int* t1 = (int*)gmalloc(sizeof(int));
     int* t2 = (int*)gmalloc(sizeof(int));
-    int diff = (((int)t1 - (int)t2)==(HEAP_BLOCK_SIZE+sizeof(int)));
+    int diff = ((int) t1 - (int) t2) == (HEAP_BLOCK_SIZE + sizeof(int));
     //diff should be HEAP_BLOCK_SIZE+sizeof(int)
 
     //test if block is correctly freed
