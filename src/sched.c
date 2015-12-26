@@ -313,8 +313,7 @@ void __attribute__((naked)) irq_handler()
 
 	// Reactivate interruptions (I bit to 0)
 	ENABLE_IRQ();
-
-
+	
 	// Reload registers, put return address (lr_irq) into pc to get back to interrupted code, and load spsr => change back CPU mode
 	__asm("ldmfd sp!, {r0-r12, pc}^");
 }
@@ -322,7 +321,7 @@ void __attribute__((naked)) irq_handler()
 void do_sys_fork(uint32_t* sp)
 {
 	// New process & copy data
-	struct pcb_s* new_process = add_process(current_process->entry);
+	register struct pcb_s* new_process = add_process(current_process->entry);
 	
 	uint8_t i;
 	// Copy register content
@@ -332,19 +331,21 @@ void do_sys_fork(uint32_t* sp)
 	}
 	new_process->lr_user = current_process->lr_user;
 	new_process->priority = current_process->priority;
+	new_process->cpsr_user = current_process->cpsr_user;
 	// TODO Copy stack content
 	
 	// TODO Copy heap content (careful with virtual and physical addresses for different page_tables)
 	// check out :
 	// stackoverflow.com/questions/8857830/fork-implementation
-	// https://github.com/pykello/arunos/blob/master/kernel/proc/syscall_fork.c (very useful!!)
+	// https://github.com/pykello/arunos/blob/master/kernel/proc/syscall_fork.c (might be useful)
 	
 	
 	// Return 0 if the new process, or the pid when in parent process
-	new_process->fork_return = 0;
-	current_process->fork_return = new_process->pid;
+	new_process->registers[0] = 0; // The child process' return is 0, which is stored in r0
 	
-	__asm("mov %0, pc" : "=r"(new_process->lr_svc)); // The new process must begin here
+	__asm("cps 0b11111"); // System mode
+	__asm("mov %0, lr" : "=r"(new_process->lr_svc)); // The new process must begin here
+	__asm("cps 0b10011"); // SVC mode
 	
-	*sp = current_process->fork_return;
+	*sp = new_process->pid;
 }

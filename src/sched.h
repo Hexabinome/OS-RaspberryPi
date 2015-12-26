@@ -36,7 +36,6 @@ struct pcb_s
 	struct pcb_s* previous;
 	
 	struct pcb_s* next_waiting_sem;
-	uint32_t fork_return;
 	
 	uint32_t** page_table;
 };

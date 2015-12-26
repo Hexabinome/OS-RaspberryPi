@@ -5,7 +5,7 @@
 
 int process()
 {
-	int32_t cpt = 0;
+	int32_t cpt = 10;
 	
 	int pid = sys_fork();
 	if (pid == -1)
@@ -14,19 +14,15 @@ int process()
 	}
 	else if (pid == 0)
 	{
-		// Son
-		while (1)
-		{
-			cpt--;
-		}
+		// Child
+		cpt--;
+		while (1) ;
 	}
 	else
 	{
 		// parent
-		while (1)
-		{
-			cpt++;
-		}
+		cpt++;
+		while (1) ;
 	}
 	
 	
