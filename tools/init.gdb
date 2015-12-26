@@ -16,6 +16,8 @@ b *kmain
 #b *swi_handler
 b *irq_handler
 b *sys_exit
+b kmain.c:20
+b process
 
 source utils.gdb
 

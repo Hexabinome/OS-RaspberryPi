@@ -17,6 +17,8 @@ typedef int (func_t) (void);
 
 struct pcb_s
 {
+	uint32_t pid;
+	
 	uint32_t registers[NBREG];
 	uint32_t lr_svc;
 	uint32_t lr_user;
@@ -34,6 +36,7 @@ struct pcb_s
 	struct pcb_s* previous;
 	
 	struct pcb_s* next_waiting_sem;
+	uint32_t fork_return;
 	
 	uint32_t** page_table;
 };

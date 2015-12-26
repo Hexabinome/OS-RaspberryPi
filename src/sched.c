@@ -15,6 +15,8 @@ static struct pcb_s kmain_process;
 
 unsigned int nb_process;
 
+static uint32_t pid_counter = 0;
+
 unsigned int MMUTABLEBASE; /* Page table address */
 
 void sched_init()
@@ -34,6 +36,7 @@ void sched_init()
 	current_process->priority = 1; // kmain priority
 	current_process->page_table = init_translation_table();
 	current_process->next_waiting_sem = NULL;
+	current_process->pid = pid_counter++;
 		
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -75,6 +78,7 @@ static struct pcb_s* add_process(func_t* entry)
 
 	// Initial status
 	process->status = WAITING;
+	process->pid = pid_counter++;
 	
 	process->page_table = init_translation_table();
 	
@@ -313,4 +317,34 @@ void __attribute__((naked)) irq_handler()
 
 	// Reload registers, put return address (lr_irq) into pc to get back to interrupted code, and load spsr => change back CPU mode
 	__asm("ldmfd sp!, {r0-r12, pc}^");
+}
+
+void do_sys_fork(uint32_t* sp)
+{
+	// New process & copy data
+	struct pcb_s* new_process = add_process(current_process->entry);
+	
+	uint8_t i;
+	// Copy register content
+	for (i = 0; i < NBREG; ++i)
+	{
+		new_process->registers[i] = current_process->registers[i];
+	}
+	new_process->lr_user = current_process->lr_user;
+	new_process->priority = current_process->priority;
+	// TODO Copy stack content
+	
+	// TODO Copy heap content (careful with virtual and physical addresses for different page_tables)
+	// check out :
+	// stackoverflow.com/questions/8857830/fork-implementation
+	// https://github.com/pykello/arunos/blob/master/kernel/proc/syscall_fork.c (very useful!!)
+	
+	
+	// Return 0 if the new process, or the pid when in parent process
+	new_process->fork_return = 0;
+	current_process->fork_return = new_process->pid;
+	
+	__asm("mov %0, pc" : "=r"(new_process->lr_svc)); // The new process must begin here
+	
+	*sp = current_process->fork_return;
 }

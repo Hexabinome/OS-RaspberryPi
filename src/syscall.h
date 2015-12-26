@@ -14,5 +14,6 @@ void sys_exit(int status);
 void* sys_mmap(unsigned int size);
 void sys_munmap(void* addr, unsigned int size);
 int sys_setscheduler(int scheduler);
+int sys_fork();
 
 #endif // __SYSCALL__
