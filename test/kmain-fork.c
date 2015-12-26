@@ -1,7 +1,5 @@
-#include "sem.h"
 #include "syscall.h"
-#include "pwm.h"
-#include "hw.h"
+#include "sched.h"
 
 int process()
 {
@@ -10,7 +8,7 @@ int process()
 	int pid = sys_fork();
 	if (pid == -1)
 	{
-		// failed
+		// failed, should not happen
 	}
 	else if (pid == 0)
 	{
@@ -22,9 +20,9 @@ int process()
 	{
 		// parent
 		cpt++;
+		cpt++;
 		while (1) ;
 	}
-	
 	
 	return 0;
 }
