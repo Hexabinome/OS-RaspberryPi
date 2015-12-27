@@ -49,7 +49,8 @@ tests = [
 	["kmain-schedulers.c", "schedulers.gdb"],
 	["kmain-sem.c", "sem.gdb"],
 	["kmain-fork.c", "fork.gdb"],
-	["kmain-fork-gmalloc.c", "fork-gmalloc.gdb"]
+	["kmain-fork-gmalloc.c", "fork-gmalloc.gdb"],
+	["kmain-gmalloc-gfree.c", "gmalloc-gfree.gdb"]
 ]
 
 if __name__ == "__main__":

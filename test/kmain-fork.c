@@ -14,14 +14,13 @@ int process()
 	{
 		// Child
 		cpt--;
-		while (1) ;
+		sys_nop();
 	}
 	else
 	{
-		// parent
+		// Parent
 		cpt++;
-		cpt++;
-		while (1) ;
+		sys_nop();
 	}
 	
 	return 0;

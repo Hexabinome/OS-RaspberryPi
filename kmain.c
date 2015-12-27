@@ -1,7 +1,6 @@
-#include "sem.h"
 #include "syscall.h"
+#include "sched.h"
 #include "pwm.h"
-#include "hw.h"
 
 int process()
 {
@@ -24,7 +23,6 @@ int process()
 		cpt++;
 		while (1) ;
 	}
-	
 	
 	return 0;
 }

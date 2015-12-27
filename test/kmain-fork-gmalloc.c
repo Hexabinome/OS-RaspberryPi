@@ -9,7 +9,7 @@ static int my_fork()
 
 int process()
 {
-	int* momo = (int*) gmalloc(5 * size(int));
+	int* momo = (int*) gmalloc(5 * sizeof(int));
 	momo[0] = 15;
 	momo[1] = 40;
 	

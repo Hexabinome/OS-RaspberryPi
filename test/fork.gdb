@@ -13,7 +13,7 @@ break kmain-fork.c:17
 commands
   p cpt
   p pid
-  assert_results
+  continue
 end
 
 break kmain-fork.c:23
@@ -24,17 +24,30 @@ commands
 end
 
 
+b do_sys_exit
+commands
+  b sys_exit
+  commands
+    assert_results
+  end
+  continue
+end
+
+
 define assert_results
   # integer used as boolean
   set $ok = 1 
   # test results
   set $ok *= ($1 == process+8)
   
-  set $ok *= ($2 == 11)
-  set $ok *= ($3 == 2)
+  set $ok *= ($2 == 11 || $4 == 11)
+  set $ok *= ($3 == 2 || $5 == 2)
   
-  set $ok *= ($4 == 9)
-  set $ok *= ($5 == 0)
+  set $ok *= ($4 == 9 || $2 == 9)
+  set $ok *= ($5 == 0 || $3 == 0)
+  
+  set $ok *= ($2 != $4)
+  set $ok *= ($3 != $5)
   
   if $ok
     printf "test OK\n"
