@@ -11,7 +11,7 @@ int process()
 {
 	int* momo = (int*) gmalloc(5 * sizeof(int));
 	momo[0] = 15;
-	momo[1] = 40;
+	momo[1] = 40;	
 	
 	int pid = my_fork();
 	if (pid == -1)
@@ -20,15 +20,16 @@ int process()
 	}
 	else if (pid == 0)
 	{
-		// Child, display momo[0]
-		while (1) ;
+		// Child
+		momo[1] = 5;
+		sys_nop();
 	}
 	else
 	{
-		// parent
+		// Parent
 		momo[1] = 2;
 		momo++;
-		while (1) ;
+		sys_nop();
 	}
 	
 	return 0;
