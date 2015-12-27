@@ -142,7 +142,7 @@ void elect()
 	}
 	else
 	{
-		current_process->status = WAITING;
+		current_process->status = READY;
 		choose_next_process();
 	}
 	

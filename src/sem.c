@@ -48,7 +48,7 @@ void sem_up(struct sem_s* sem)
 	if (sem->counter <= 0 && sem->first_waiting != NULL)
 	{
 		struct pcb_s* unblocked_process = sem->first_waiting;
-		unblocked_process->status = WAITING;
+		unblocked_process->status = READY;
 		
 		// Set the next first waiting process
 		sem->first_waiting = unblocked_process->next_waiting_sem;

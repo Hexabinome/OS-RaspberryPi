@@ -80,7 +80,7 @@ static struct pcb_s* add_process(func_t* entry)
 	process->next_waiting_sem = NULL;
 
 	// Initial status
-	process->status = WAITING;
+	process->status = READY;
 	
 	process->pid = pid_counter++;
 	
