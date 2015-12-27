@@ -334,7 +334,7 @@ void do_sys_fork(uint32_t* sp)
 	new_process->cpsr_user = current_process->cpsr_user;
 	new_process->sp_user = (uint32_t*) (current_process->sp_end + STACK_SIZE - (STACK_SIZE - ((uint32_t) current_process->sp_user - current_process->sp_end)));
 	// Copy stack content, we iterate 4 by 4 because we cast the sp value to a pointer
-	uint32_t stack_content;	
+	register uint32_t stack_content;
 	for (i = 0; i < (STACK_SIZE / 4); ++i)
 	{
 			stack_content = ((uint32_t*) current_process->sp_end)[i];
