@@ -320,10 +320,10 @@ void __attribute__((naked)) irq_handler()
 
 void do_sys_fork(uint32_t* sp)
 {
-	// New process & copy data
+	context_load_from_pcb_svc(sp); // update current process sp and lr
 	register struct pcb_s* new_process = add_process(current_process->entry);
-	
-	uint8_t i;
+
+	uint32_t i;
 	// Copy register content
 	for (i = 0; i < NBREG; ++i)
 	{
@@ -332,7 +332,25 @@ void do_sys_fork(uint32_t* sp)
 	new_process->lr_user = current_process->lr_user;
 	new_process->priority = current_process->priority;
 	new_process->cpsr_user = current_process->cpsr_user;
-	// TODO Copy stack content
+	new_process->sp_user = (uint32_t*) (current_process->sp_end + STACK_SIZE - (STACK_SIZE - ((uint32_t) current_process->sp_user - current_process->sp_end)));
+	// Copy stack content, we iterate 4 by 4 because we cast the sp value to a pointer
+	uint32_t stack_content;	
+	for (i = 0; i < (STACK_SIZE / 4); ++i)
+	{
+			stack_content = ((uint32_t*) current_process->sp_end)[i];
+			
+			// Invalidate TLB entries
+			INVALIDATE_TLB();
+			// Current process MMU mod
+			configure_mmu_C((uint32_t) new_process->page_table);
+	
+			((uint32_t*) new_process->sp_end)[i] = stack_content;
+			// Invalidate TLB entries
+			INVALIDATE_TLB();
+			// Current process MMU mod
+			configure_mmu_C((uint32_t) current_process->page_table);
+	}
+	
 	
 	// TODO Copy heap content (careful with virtual and physical addresses for different page_tables)
 	// check out :
@@ -342,10 +360,8 @@ void do_sys_fork(uint32_t* sp)
 	
 	// Return 0 if the new process, or the pid when in parent process
 	new_process->registers[0] = 0; // The child process' return is 0, which is stored in r0
-	
-	__asm("cps 0b11111"); // System mode
-	__asm("mov %0, lr" : "=r"(new_process->lr_svc)); // The new process must begin here
-	__asm("cps 0b10011"); // SVC mode
-	
+
+	new_process->lr_svc = current_process->lr_svc; // The new process must begin here
+
 	*sp = new_process->pid;
 }
