@@ -8,8 +8,8 @@
 #include "vmem.h"
 #include "schedulers.h"
 
-#define MEMORY_SIZE 1000000 // 1MB
-#define HEAP_SIZE 900000 // 9KB
+#define MEMORY_SIZE 1000000 // 100KB
+#define HEAP_SIZE 900000 // 90KB
 #define STACK_SIZE 100000 // 1KB
 
 struct pcb_s* current_process;
@@ -96,7 +96,8 @@ static struct pcb_s* add_process(func_t* entry)
 	process->sp_user = (uint32_t*)(process->memory_start + MEMORY_SIZE);
 	process->heap = (struct heap_block*) (process->memory_start);
 	process->heap->is_free = TRUE;
-	process->heap->next = process->heap;
+	process->heap->next = NULL;
+	process->heap->previous = NULL;
 	process->heap->size = HEAP_SIZE - HEAP_BLOCK_SIZE;
 	// Invalidate TLB entries
 	INVALIDATE_TLB();

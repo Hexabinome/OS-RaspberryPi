@@ -10,15 +10,18 @@ extern struct pcb_s* current_process;
 static struct heap_block* find_free_block(uint32_t size)
 {
 	struct heap_block* current_block = current_process->heap;
-	while ((!(current_block->is_free)) || current_block->size < size || current_block->next != current_process->heap) // iterate on existing blocks, while not accurate
+	while ((!(current_block->is_free)) || current_block->size < size) // iterate on existing blocks, while not accurate
 	{
+		if (current_block == NULL)
+		{
+			return NULL; // no block found
+		}
 		current_block = current_block->next;
 	}
 
 
 	if (current_block->is_free && current_block->size >= size)
 	{
-
 		return current_block;
 	}
 
@@ -45,6 +48,11 @@ void* gmalloc(unsigned int size)
 		new_second_block->is_free = TRUE;
 		new_second_block->size = (new_block->size + HEAP_BLOCK_SIZE) - (size + HEAP_BLOCK_SIZE); // TODO correct ?
 		new_second_block->next = new_block->next;
+		new_second_block->previous = new_block;
+		if (new_second_block->next != NULL)
+		{
+			new_second_block->next->previous = new_second_block;
+		}
 		new_block->is_free = FALSE;
 		new_block->size = size;
 		new_block->next = new_second_block;
@@ -63,30 +71,23 @@ void gfree(void* addr)
 
 	block->is_free = TRUE;
 	
-    // Fusion each block with next on if possible, multiple tries
-	struct heap_block* next_block;
-	uint8_t changed;
-	do
+	struct heap_block* previous_block = block->previous;
+	while (previous_block != NULL && previous_block->is_free)
 	{
-		block = current_process->heap;
-		next_block = block->next;
-		changed = FALSE;
-		while (next_block != current_process->heap)
-		{
-			if (block->is_free && next_block->is_free)
-			{
-				block->size += next_block->size;//Metadata of second block are deleted so block->size += (next_block->size + HEAP_BLOCK_SIZE) ?
-				block->next = next_block->next;
-				changed = TRUE;
-			}
-			else
-			{
-				block = next_block;
-			}
-			next_block = block->next;
+		block = previous_block;
+		previous_block = block->previous;
+	}
+	
+    // Fusion each block with next on if possible, multiple tries
+	struct heap_block* next_block = block->next;
+	while (next_block->is_free && next_block->next != NULL)
+	{
+		block->size += next_block->size;//Metadata of second block are deleted so block->size += (next_block->size + HEAP_BLOCK_SIZE) ?
+		block->next = next_block->next;
+		block->next->previous = block;
 			
-		}
-	} while (changed);
+		next_block = block->next;
+	}
 	
 	// TODO solution for this current problem :
 	// a = galloc();
