@@ -14,7 +14,8 @@ enum SYSCALLS
 	EXIT,
 	MMAP,
 	MUNMAP,
-	SETSCHEDULER
+	SETSCHEDULER,
+	FORK
 };
 
 void sys_reboot()
@@ -151,6 +152,18 @@ int sys_setscheduler(int scheduler)
 
 void do_sys_setscheduler(uint32_t* scheduler); // implemented in schedulers.c
 
+int sys_fork()
+{
+	__asm("MOV r0, %0": : "r"(FORK));
+	__asm("SWI #0");
+	
+	uint32_t return_pid;
+	__asm("MOV %0, r0" : "=r"(return_pid));
+	return return_pid;
+}
+
+void do_sys_fork(uint32_t* sp); // implemented in sched.c
+
 void __attribute__((naked)) swi_handler()
 {
 	__asm("stmfd sp!, {r0-r12, lr}");
@@ -191,6 +204,9 @@ void __attribute__((naked)) swi_handler()
 			break;
 		case SETSCHEDULER:
 			do_sys_setscheduler(sp);
+			break;
+		case FORK:
+			do_sys_fork(sp);
 			break;
 		default:
 			PANIC();

@@ -1,6 +1,5 @@
 #include "syscall.h"
 #include "sched.h"
-#include "pwm.h"
 
 int process()
 {
@@ -9,19 +8,19 @@ int process()
 	int pid = sys_fork();
 	if (pid == -1)
 	{
-		// failed
+		// failed, should not happen
 	}
 	else if (pid == 0)
 	{
 		// Child
 		cpt--;
-		while (1) ;
+		sys_nop();
 	}
 	else
 	{
-		// parent
+		// Parent
 		cpt++;
-		while (1) ;
+		sys_nop();
 	}
 	
 	return 0;

@@ -1,27 +1,35 @@
 #include "syscall.h"
 #include "sched.h"
-#include "pwm.h"
+#include "malloc.h"
+
+static int my_fork()
+{
+	return sys_fork();
+}
 
 int process()
 {
-	int32_t cpt = 10;
+	int* momo = (int*) gmalloc(5 * sizeof(int));
+	momo[0] = 15;
+	momo[1] = 40;	
 	
-	int pid = sys_fork();
+	int pid = my_fork();
 	if (pid == -1)
 	{
-		// failed
+		// failed, should not happen
 	}
 	else if (pid == 0)
 	{
 		// Child
-		cpt--;
-		while (1) ;
+		momo[1] = 5;
+		sys_nop();
 	}
 	else
 	{
-		// parent
-		cpt++;
-		while (1) ;
+		// Parent
+		momo[1] = 2;
+		momo++;
+		sys_nop();
 	}
 	
 	return 0;

@@ -29,6 +29,7 @@ void configure_mmu_kernel();
 void configure_mmu_C(uint32_t mmu_adr);
 void start_mmu_C();
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process);
+uint32_t vmem_translate_back(uint32_t phy_addr, struct pcb_s* process);
 
 uint8_t is_forbidden_address(uint32_t addr);
 

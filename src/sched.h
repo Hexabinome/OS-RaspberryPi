@@ -2,12 +2,13 @@
 #define _SCHED_H
 
 #include <stdint.h>
+#include "malloc.h"
 
 #define NBREG 13
 
 enum PROCESS_STATUS
 {
-	WAITING,
+	READY,
 	RUNNING,
 	TERMINATED,
 	BLOCKED
@@ -17,11 +18,14 @@ typedef int (func_t) (void);
 
 struct pcb_s
 {
+	uint32_t pid;
+	
 	uint32_t registers[NBREG];
 	uint32_t lr_svc;
 	uint32_t lr_user;
 	uint32_t* sp_user;
-	uint32_t sp_end;
+	uint32_t memory_start;
+	struct heap_block* heap;
 	uint32_t cpsr_user;
 	
 	func_t* entry;
