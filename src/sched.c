@@ -40,6 +40,9 @@ void sched_init()
 	current_process->heap = NULL;
 	current_process->next_waiting_sem = NULL;
 	current_process->pid = pid_counter++;
+	current_process->ppid = NULL;
+	current_process->child = NULL;
+	current_process->brother = NULL;
 	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
@@ -83,6 +86,24 @@ static struct pcb_s* add_process(func_t* entry)
 	process->status = READY;
 	
 	process->pid = pid_counter++;
+	process->ppid = current_process->pid;
+	
+	// If first child
+	if (current_process->child == NULL)
+	{
+		current_process->child = process;
+	}
+	else // Else, it the brother of the last child
+	{
+		struct pcb_s* curr_child = current_process->child;
+		while (curr_child->brother != NULL)
+		{
+			curr_child = curr_child->brother;
+		}
+		curr_child->brother = process;
+	}
+	process->child = NULL;
+	process->brother = NULL;
 	
 	process->page_table = init_translation_table();
 
@@ -132,6 +153,29 @@ void create_process_with_fix_priority(func_t* entry, int priority)
 
 void free_process(struct pcb_s* process)
 {
+	// If process had child, these become orphans
+	if (process->child != NULL)
+	{
+		struct pcb_s* curr_child = process->child;
+		while (curr_child != NULL)
+		{
+			if (curr_child->status == TERMINATED)
+			{
+				kFree((uint8_t*) process, sizeof(struct pcb_s));
+			}
+			else
+			{
+				curr_child->ppid = 0; // so this parent is kmain
+			}
+			curr_child = curr_child->brother;
+		}
+	}
+	
+	if (process->ppid == 0) // if orphan process, cannot become zombie
+	{
+		kFree((uint8_t*) process, sizeof(struct pcb_s));
+	}
+	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
 	// Process to delete MMU mod
@@ -147,9 +191,7 @@ void free_process(struct pcb_s* process)
 
 	//free page table
 	kFree((uint8_t*)process->page_table, FIRST_LVL_TT_SIZE);
-	//free pcb
-	kFree((uint8_t*)process, sizeof(struct pcb_s));
-
+	
 	// Invalidate TLB entries
 	INVALIDATE_TLB();
 	// Current process MMU mod
@@ -371,4 +413,89 @@ void do_sys_fork(uint32_t* sp)
 
 
 	*sp = new_process->pid;
+}
+
+void do_sys_waitpid(uint32_t* sp)
+{
+	uint32_t pid;
+	uint32_t* status;
+	__asm("mov %0, r1" : "=r"(pid));
+	__asm("mov %0, r2" : "=r"(status));
+	
+	struct pcb_s* process_waiting_for = current_process->child;
+	
+	if (process_waiting_for->pid == pid)
+	{
+		// Wait that this process if terminated
+		while (process_waiting_for->status != TERMINATED)
+		{
+			sys_yield();
+		}
+		
+		// Delete from brother list
+		current_process->child = process_waiting_for->brother;
+		*status = process_waiting_for->return_code;
+		
+		// Free struct pcb
+		kFree((uint8_t*) process_waiting_for, sizeof(struct pcb_s));
+	}
+	else if (pid == -1)
+	{
+		// Check if one child process is terminated
+		while (process_waiting_for->status != TERMINATED)
+		{
+			process_waiting_for = process_waiting_for->brother;
+			if (process_waiting_for == NULL)
+			{
+				process_waiting_for = current_process->child;
+				sys_yield();
+			}
+		}
+		
+		if (process_waiting_for == current_process->child)
+		{
+			current_process->child = process_waiting_for->brother;
+		}
+		else
+		{
+			struct pcb_s* previous_waiting_process = current_process->child;
+			while (previous_waiting_process->brother != process_waiting_for)
+			{
+				previous_waiting_process = previous_waiting_process->brother;
+			}
+			previous_waiting_process->brother = process_waiting_for->brother;
+		}
+		
+		*status = process_waiting_for->return_code;
+		// Free struct pcb
+		kFree((uint8_t*) process_waiting_for, sizeof(struct pcb_s));
+	}
+	
+	else
+	{
+		struct pcb_s* process_waiting_for_previous = process_waiting_for;
+		process_waiting_for = process_waiting_for->brother;
+		while (process_waiting_for != NULL && process_waiting_for->pid != pid)
+		{
+			process_waiting_for_previous = process_waiting_for;
+			process_waiting_for = process_waiting_for->brother;
+		}
+		if (process_waiting_for == NULL)
+		{
+			return; // TODO errno error code
+		}
+		
+		// Wait that this process if terminated
+		while (process_waiting_for->status != TERMINATED)
+		{
+			sys_yield();
+		}
+		
+		// Delete from brother list
+		process_waiting_for_previous->brother = process_waiting_for->brother;
+		*status = process_waiting_for->return_code;
+		
+		// Free struct pcb
+		kFree((uint8_t*) process_waiting_for, sizeof(struct pcb_s));
+	}
 }

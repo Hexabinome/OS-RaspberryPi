@@ -19,6 +19,7 @@ typedef int (func_t) (void);
 struct pcb_s
 {
 	uint32_t pid;
+	uint32_t ppid;
 	
 	uint32_t registers[NBREG];
 	uint32_t lr_svc;
@@ -40,6 +41,10 @@ struct pcb_s
 	struct pcb_s* next_waiting_sem;
 	
 	uint32_t** page_table;
+	
+	// A process knows his children and his brothers
+	struct pcb_s* child;
+	struct pcb_s* brother;
 };
 
 void sched_init();

@@ -15,5 +15,7 @@ void* sys_mmap(unsigned int size);
 void sys_munmap(void* addr, unsigned int size);
 int sys_setscheduler(int scheduler);
 int sys_fork();
+void sys_wait(int* status);
+void sys_waitpid(unsigned int pid, int* status);
 
 #endif // __SYSCALL__
