@@ -6,20 +6,24 @@ default:kernel_for_qemu
 
 all: kernel_for_qemu kernel_for_sdcard
 
-kernel_for_qemu: build/kernel.elf build/kernel.list
+kernel_for_qemu: build build/kernel.elf build/kernel.list
 
 kernel_for_sdcard: kernel_for_qemu build/kernel.img 
 
 remake: clean all
 
+INCDIR=include/
+SRCDIR=src/
+
 # options à passer au compilateur C
-CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
+CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -I $(INCDIR)
 
 # options à passer à la fois au compilateur C et à l'assembleur
 COMMON_FLAGS=-mcpu=arm1176jzf-s
 
 # Object files (excluding kmain)
-OBJECTS=build/tune.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
+TUNEOBJ=tune.o tune1.o tune2.o tune3.o tune4.o tune5.o tune6.o
+OBJECTS=$(addprefix build/, $(TUNEOBJ)) $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard $(SRCDIR)/*.[cs])))))
 
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
@@ -62,17 +66,17 @@ build/%.o: src/%.c $(wildcard src/*.h) | build
 
 # compilation du point d'entrée 
 build/kmain.o: $(KMAIN) $(wildcard src/*.h)
-	arm-none-eabi-gcc $(COMMON_FLAGS) $(CFLAGS) -I src $< -c -o $@
+	arm-none-eabi-gcc $(COMMON_FLAGS) $(CFLAGS) -I $(SRCDIR) $< -c -o $@
 	@#"let's silently remember the checksum of the most recent kmain.c we compiled"
 	@md5sum $(KMAIN) > build/kmain.md5
 
 # assemblage .s vers ELF
-build/%.o: src/%.s | build
+build/%.o: $(SRCDIR)/%.s | build
 	arm-none-eabi-as -g $(COMMON_FLAGS) $< -c -o $@
 
 # édition de liens
 build/kernel.elf: $(OBJECTS) build/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T src/sysif.ld -Map build/mapfile.map
+	arm-none-eabi-ld $^ -o $@ -T $(SRCDIR)/sysif.ld -Map build/mapfile.map
 
 # conversion de l'image pour transfert sur carte SD
 build/kernel.img: build/kernel.elf
