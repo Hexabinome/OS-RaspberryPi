@@ -9,32 +9,32 @@ commands
   continue
 end
 
-break kmain-gmalloc-gfree.c:11
+break kmain-gmalloc-gfree.c:12
 commands
   p diff
   continue
 end
 
-break kmain-gmalloc-gfree.c:23
+break kmain-gmalloc-gfree.c:24
 commands
   p/x test1
   p/x test2
   continue
 end
-break kmain-gmalloc-gfree.c:33
+break kmain-gmalloc-gfree.c:34
 commands
   p/x a
   p/x aa
   continue
 end
-break kmain-gmalloc-gfree.c:35
+break kmain-gmalloc-gfree.c:36
 commands
   p/x start_heap
   p/x current_process->heap
   continue
 end
 
-break kmain-gmalloc-gfree.c:39
+break kmain-gmalloc-gfree.c:40
 commands
 	assert_results
 end

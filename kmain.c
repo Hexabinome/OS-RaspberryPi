@@ -1,4 +1,5 @@
 #include "sched.h"
+#include "sched_irq.h"
 #include "shell.h"
 
 void kmain()

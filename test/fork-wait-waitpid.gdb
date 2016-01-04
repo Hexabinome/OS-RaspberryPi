@@ -9,44 +9,44 @@ commands
   continue
 end
 
-break kmain-fork-wait-waitpid.c:24
+break kmain-fork-wait-waitpid.c:25
 commands
   p $pc
   continue
 end
-break kmain-fork-wait-waitpid.c:31
+break kmain-fork-wait-waitpid.c:32
 commands
   p status
   continue
 end
 
-break kmain-fork-wait-waitpid.c:37
+break kmain-fork-wait-waitpid.c:38
 commands
   p $pc
   continue
 end
-break kmain-fork-wait-waitpid.c:44
+break kmain-fork-wait-waitpid.c:45
 commands
   p status
   continue
 end
 
-break kmain-fork-wait-waitpid.c:50
+break kmain-fork-wait-waitpid.c:51
 commands
   p $pc
   continue
 end
-break kmain-fork-wait-waitpid.c:59
+break kmain-fork-wait-waitpid.c:60
 commands
   p $pc
-  continue
-end
-break kmain-fork-wait-waitpid.c:65
-commands
-  p status
   continue
 end
 break kmain-fork-wait-waitpid.c:66
+commands
+  p status
+  continue
+end
+break kmain-fork-wait-waitpid.c:67
 commands
   p status
   assert_results

@@ -112,11 +112,8 @@ static void electDynamicPriority()
 static void choose_next_process()
 {
 	current_scheduler();
-		
-	// Set transalation table
-	INVALIDATE_TLB();
-	// Current process MMU mod
-	configure_mmu_C((uint32_t)current_process->page_table);
+	
+	switch_mmu_to(current_process);
 }
 
 /* *** External visible functions *** */

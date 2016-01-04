@@ -1,5 +1,6 @@
 #include "sem.h"
 #include "syscall.h"
+#include "sched_irq.h"
 
 struct sem_s sem;
 

@@ -4,7 +4,10 @@
 #include "vmem_helper.h"
 #include "util.h"
 #include "hw.h"
+#include "asm_tools.h"
 #include "syscall.h"
+#include "process.h"
+#include "sched.h"
 
 
 unsigned int MMUTABLEBASE; /* Page table address */
@@ -22,6 +25,9 @@ const uint16_t device_address_page_table_idx_start = 0x20000000 >> 20;
 const uint16_t device_address_page_table_idx_end = (0x20000000 >> 20) + 16;
 
 extern struct pcb_s* current_process;
+
+static void configure_mmu_C(uint32_t mmu_adr);
+static void start_mmu_C();
 
 static uint32_t** get_table_base(struct pcb_s* process)
 {
@@ -68,7 +74,7 @@ void vmem_init()
 	MMUTABLEBASE = (unsigned int) init_translation_table();
 	frame_table = init_frame_occupation_table();
 	
-	configure_mmu_kernel();
+	configure_mmu_C(MMUTABLEBASE);
 	start_mmu_C();
 }
 
@@ -151,14 +157,9 @@ uint8_t* init_frame_occupation_table(void)
 	}
 	
 	return ft;
-}	
-void configure_mmu_kernel()
-{
-	configure_mmu_C(MMUTABLEBASE);
 }
 
-
-void configure_mmu_C(uint32_t mmu_adr)
+static void configure_mmu_C(uint32_t mmu_adr)
 {
 	register unsigned int pt_addr = mmu_adr;
 	
@@ -175,7 +176,19 @@ void configure_mmu_C(uint32_t mmu_adr)
 	__asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
 
-void start_mmu_C()
+void switch_mmu_to_kernel()
+{
+	INVALIDATE_TLB();
+	configure_mmu_C(MMUTABLEBASE);
+}
+
+void switch_mmu_to(struct pcb_s* process)
+{
+	INVALIDATE_TLB();
+	configure_mmu_C((uint32_t) process->page_table);
+}
+
+static void start_mmu_C()
 {
 	register unsigned int control;
 

@@ -4,6 +4,7 @@
 #include "pwm.h"
 #include "asm_tools.h"
 #include "hw.h"
+#include "sched_irq.h"
 
 extern struct pcb_s* current_process;
 int process1()

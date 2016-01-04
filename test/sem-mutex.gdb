@@ -3,11 +3,6 @@
 set verbose off
 set confirm off
 
-break kmain-sem-mutex.c:10
-commands
-  print $pc
-  continue
-end
 break kmain-sem-mutex.c:11
 commands
   print $pc
@@ -23,13 +18,13 @@ commands
   print $pc
   continue
 end
-
-break kmain-sem-mutex.c:21
+break kmain-sem-mutex.c:14
 commands
   print $pc
   continue
 end
-break kmain-sem-mutex.c:23
+
+break kmain-sem-mutex.c:22
 commands
   print $pc
   continue
@@ -39,19 +34,24 @@ commands
   print $pc
   continue
 end
-
-break kmain-sem-mutex.c:31
-commands
-  print $pc
-  continue
-end
-break kmain-sem-mutex.c:33
+break kmain-sem-mutex.c:25
 commands
   print $pc
   continue
 end
 
-break kmain-sem-mutex.c:35
+break kmain-sem-mutex.c:32
+commands
+  print $pc
+  continue
+end
+break kmain-sem-mutex.c:34
+commands
+  print $pc
+  continue
+end
+
+break kmain-sem-mutex.c:36
 commands
   assert_results
 end

@@ -2,6 +2,7 @@
 #include "sched.h"
 #include "schedulers.h"
 #include "asm_tools.h"
+#include "sched_irq.h"
 
 extern struct pcb_s* current_process;
 

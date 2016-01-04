@@ -1,6 +1,7 @@
 #include "syscall.h"
 #include "sched.h"
 #include "malloc.h"
+#include "sched_irq.h"
 
 static int my_fork()
 {

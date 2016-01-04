@@ -2,6 +2,7 @@
 #include "syscall.h"
 #include "pwm.h"
 #include "hw.h"
+#include "sched_irq.h"
 
 struct sem_s mutex;
 

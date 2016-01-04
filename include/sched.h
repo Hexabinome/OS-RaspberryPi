@@ -1,10 +1,7 @@
-#ifndef _SCHED_H
-#define _SCHED_H
+#ifndef SCHED_H
+#define SCHED_H
 
-#include <stdint.h>
-#include "malloc.h"
-
-#define NBREG 13
+#include "process.h"
 
 enum PROCESS_STATUS
 {
@@ -14,43 +11,12 @@ enum PROCESS_STATUS
 	BLOCKED
 };
 
-typedef int (func_t) (void);
-
-struct pcb_s
-{
-	uint32_t pid;
-	uint32_t ppid;
-	
-	uint32_t registers[NBREG];
-	uint32_t lr_svc;
-	uint32_t lr_user;
-	uint32_t* sp_user;
-	uint32_t memory_start;
-	struct heap_block* heap;
-	uint32_t cpsr_user;
-	
-	func_t* entry;
-	
-	int status;
-	int priority;
-	int return_code;
-	
-	struct pcb_s* next;
-	struct pcb_s* previous;
-	
-	struct pcb_s* next_waiting_sem;
-	
-	uint32_t** page_table;
-	
-	// A process knows his children and his brothers
-	struct pcb_s* child;
-	struct pcb_s* brother;
-};
-
 void sched_init();
-void irq_init();
+
+struct pcb_s* add_process(func_t* entry);
 void create_process(func_t* entry);
 void create_process_with_fix_priority(func_t* entry, int priority);
 void free_process(struct pcb_s* process);
 
-#endif // _SCHED_H
+
+#endif // SCHED_H

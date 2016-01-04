@@ -14,7 +14,7 @@ commands
   print $pc
   continue
 end
-break kmain-isolation.c:13
+break kmain-isolation.c:14
 commands
   p/x momo1
   p/x a1
@@ -26,14 +26,14 @@ commands
   p $pc
   continue
 end
-break kmain-isolation.c:29
+break kmain-isolation.c:30
 commands
   p/x momo2
   p/x a2
   continue
 end
 
-break kmain-isolation.c:18
+break kmain-isolation.c:19
 commands
   p/x a1
   break data_handler
@@ -44,7 +44,7 @@ commands
   continue
 end
 
-break kmain-isolation.c:34
+break kmain-isolation.c:35
 commands
   p/x a2
   assert_results

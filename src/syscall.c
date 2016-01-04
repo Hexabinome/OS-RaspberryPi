@@ -164,7 +164,7 @@ int sys_fork()
 	return return_pid;
 }
 
-void do_sys_fork(uint32_t* sp); // implemented in sched.c
+void do_sys_fork(uint32_t* sp); // implemented in fork.c
 
 void sys_wait(int* status)
 {
@@ -179,7 +179,7 @@ void sys_waitpid(unsigned int pid, int* status)
 	__asm("SWI #0");
 }
 
-void do_sys_waitpid(uint32_t* sp); // implemented in sched.c
+void do_sys_waitpid(uint32_t* sp); // implemented in fork.c
 
 void __attribute__((naked)) swi_handler()
 {

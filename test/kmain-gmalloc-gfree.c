@@ -1,6 +1,7 @@
 #include "sched.h"
 #include "malloc.h"
 #include "syscall.h"
+#include "sched_irq.h"
 
 static int process1()
 {

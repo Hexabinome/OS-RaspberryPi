@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "sched.h"
+#include "process.h"
 
 void sys_reboot();
 void sys_nop();

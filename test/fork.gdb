@@ -9,14 +9,14 @@ commands
   continue
 end
 
-break kmain-fork.c:17
+break kmain-fork.c:18
 commands
   p cpt
   p pid
   continue
 end
 
-break kmain-fork.c:23
+break kmain-fork.c:24
 commands
   p cpt
   p pid

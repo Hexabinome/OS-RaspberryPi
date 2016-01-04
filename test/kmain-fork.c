@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "sched.h"
+#include "sched_irq.h"
 
 int process()
 {
