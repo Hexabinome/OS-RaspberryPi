@@ -1,11 +1,34 @@
 #include "shell.h"
 #include "syscall.h"
 //#include "fb_cursor.h"
+#include "string.h"
+#include "hw.h"
+#include "malloc.h"
+
+void do_echo(char* args)
+{
+	log_str(args);
+}
+
+static char** parse_command(char* cmd)
+{
+	char* space = strtok(cmd, ' ');
+	space++;
+	
+	char** args = (char**) gmalloc(sizeof(char*) * 2);
+	args[0] = cmd;
+	args[1] = space;
+	
+	return args;
+}
 
 void launch_command(char* cmd)
 {
-	uint32_t i;
-	for (i = 0; i < 1000000000; ++i) ;
+	char** args = parse_command(cmd);
+	if (strcmp(args[0], "echo") == 0)
+	{
+		do_echo(args[1]);
+	}
 }
 
 
@@ -14,7 +37,7 @@ int start_shell()
 	//fb_prompt();
 	
 	// Read line
-	char* m = "ps\n";
+	char* m = "echo Hello world\n";
 	
 	// Call corresponding command
 	int pid = sys_fork();
