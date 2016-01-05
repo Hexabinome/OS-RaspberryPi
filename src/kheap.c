@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "kheap.h"
-
+#include "device_mem.h"
 
 struct fl {
 	struct fl	*next;
@@ -123,4 +123,5 @@ kheap_init()
 {
     kernel_heap_top = (uint8_t*) &__kernel_heap_start__;
     kernel_heap_limit = (uint8_t*) &__kernel_heap_end__;
+    device_mem_init();
 }

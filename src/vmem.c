@@ -230,12 +230,6 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
     return (uint32_t) get_phy_addr_from(second_lvl_desc, va);
 }
 
-uint32_t vmem_translate_back(uint32_t phy_addr, struct pcb_s* process)
-{
-	// TODO
-	return 0;
-}
-
 static uint32_t get_nb_pages(uint32_t size)
 {
 	uint32_t nb_pages = divide(size, FRAME_SIZE);

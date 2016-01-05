@@ -1,13 +1,13 @@
 #include "shell.h"
 #include "syscall.h"
-//#include "fb_cursor.h"
+#include "fb_cursor.h"
 #include "string.h"
 #include "hw.h"
 #include "malloc.h"
 
 void do_echo(char* args)
 {
-	log_str(args);
+	fb_print_text(args);
 }
 
 static char** parse_command(char* cmd)
@@ -29,15 +29,18 @@ void launch_command(char* cmd)
 	{
 		do_echo(args[1]);
 	}
+	fb_print_char('\n');
 }
 
 
 int start_shell()
 {
-	//fb_prompt();
+	// while(1)
+	fb_prompt();
 	
 	// Read line
-	char* m = "echo Hello world\n";
+	char* m = "echo Hello world";
+	fb_print_text(m);
 	
 	// Call corresponding command
 	int pid = sys_fork();

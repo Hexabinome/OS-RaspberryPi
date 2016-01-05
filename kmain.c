@@ -1,11 +1,19 @@
 #include "sched.h"
 #include "sched_irq.h"
 #include "shell.h"
+#include "fb.h"
+#include "hw.h"
+
+extern struct pcb_s* current_process;
 
 void kmain()
 {
+	hw_init();
+	FramebufferInitialize();
 	sched_init();
 	
+	fb_prompt(); // for test purpose
+
 	create_process(&start_shell);
 	
 	irq_init();
