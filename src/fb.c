@@ -1,5 +1,6 @@
 #include "fb.h"
 #include "config.h"
+#include "kheap.h"
 
 /*
  * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
@@ -117,7 +118,8 @@ int FramebufferInitialize() {
 
   uint32_t retval=0;
   
-  volatile unsigned int mb[100] __attribute__ ((aligned(16)));
+  //volatile unsigned int mb[100] __attribute__ ((aligned(16)));
+  volatile unsigned int* mb = (unsigned int*) kAlloc_aligned(sizeof(unsigned int) * 100, 16);
 
   depth = 24;
 

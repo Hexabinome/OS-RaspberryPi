@@ -13,6 +13,8 @@
 unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
 
+static const uint32_t device_heap_start = (uint32_t) &__devices_start__;
+static const uint32_t device_heap_end = (uint32_t) &__devices_end__;
 static const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
 extern uint32_t __irq_stack_end__;
 
@@ -64,7 +66,6 @@ static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uin
     second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
     second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
     *second_level_descriptor_address = (phy_addr & 0xFFFFF000) | kernel_flags;
-// TODO okay ?
 }
 
 void vmem_init()
@@ -118,7 +119,7 @@ uint32_t** init_translation_table(void)
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr += PAGE_SIZE)
+	for(log_addr = device_heap_start; log_addr < device_heap_end; log_addr += PAGE_SIZE)
     {
         first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
@@ -140,8 +141,8 @@ uint8_t* init_frame_occupation_table(void)
 	
 	unsigned int i;
 	unsigned int frame_kernel_heap_end = divide(kernel_heap_end, FRAME_SIZE);
-	unsigned int frame_devices_start = divide(0x20000000, FRAME_SIZE);
-	unsigned int frame_devices_end = divide(0x20FFFFFF, FRAME_SIZE);
+	unsigned int frame_devices_start = divide(device_heap_start, FRAME_SIZE);
+	unsigned int frame_devices_end = divide(device_heap_end, FRAME_SIZE);
 	
 	for (i = 0; i <= frame_kernel_heap_end; ++i)
 	{

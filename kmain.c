@@ -3,14 +3,16 @@
 #include "shell.h"
 #include "fb.h"
 #include "hw.h"
+#include "fb_cursor.h"
 
 extern struct pcb_s* current_process;
 
 void kmain()
 {
+	sched_init();
+	
 	hw_init();
 	FramebufferInitialize();
-	sched_init();
 	
 	fb_prompt(); // for test purpose
 
