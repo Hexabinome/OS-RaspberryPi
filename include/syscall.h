@@ -2,7 +2,6 @@
 #define __SYSCALL__
 
 #include <stdint.h>
-#include "sched.h"
 #include "process.h"
 
 void sys_reboot();

@@ -6,6 +6,7 @@
 #include "vmem.h"
 #include "sched_svc.h"
 #include "kheap.h"
+#include "asm_tools.h"
 
 extern struct pcb_s* current_process;
 
@@ -63,10 +64,12 @@ void do_sys_waitpid(uint32_t* sp)
 	if (process_waiting_for->pid == pid)
 	{
 		// Wait that this process if terminated
+		ENABLE_IRQ();
 		while (process_waiting_for->status != TERMINATED)
 		{
-			sys_yield();
+			//sys_yield();
 		}
+		DISABLE_IRQ();
 		
 		// Delete from brother list
 		current_process->child = process_waiting_for->brother;
@@ -78,15 +81,17 @@ void do_sys_waitpid(uint32_t* sp)
 	else if (pid == -1)
 	{
 		// Check if one child process is terminated
+		ENABLE_IRQ();
 		while (process_waiting_for->status != TERMINATED)
 		{
 			process_waiting_for = process_waiting_for->brother;
 			if (process_waiting_for == NULL)
 			{
 				process_waiting_for = current_process->child;
-				sys_yield();
+				//sys_yield();
 			}
 		}
+		DISABLE_IRQ();
 		
 		if (process_waiting_for == current_process->child)
 		{
@@ -95,6 +100,7 @@ void do_sys_waitpid(uint32_t* sp)
 		else
 		{
 			struct pcb_s* previous_waiting_process = current_process->child;
+			
 			while (previous_waiting_process->brother != process_waiting_for)
 			{
 				previous_waiting_process = previous_waiting_process->brother;
@@ -122,10 +128,12 @@ void do_sys_waitpid(uint32_t* sp)
 		}
 		
 		// Wait that this process if terminated
+		ENABLE_IRQ();
 		while (process_waiting_for->status != TERMINATED)
 		{
-			sys_yield();
+			//sys_yield();
 		}
+		DISABLE_IRQ();
 		
 		// Delete from brother list
 		process_waiting_for_previous->brother = process_waiting_for->brother;

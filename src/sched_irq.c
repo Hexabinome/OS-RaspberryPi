@@ -5,6 +5,7 @@
 #include "schedulers.h"
 #include "vmem.h"
 #include "sched.h"
+#include "util.h"
 
 extern struct pcb_s* current_process;
 
