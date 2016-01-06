@@ -2,13 +2,8 @@
 #include "syscall.h"
 //#include "fb_cursor.h"
 #include "string.h"
-#include "hw.h"
 #include "malloc.h"
-
-void do_echo(char* args)
-{
-	log_str(args);
-}
+#include "shell_commands.h"
 
 static char** parse_command(char* cmd)
 {
@@ -28,6 +23,10 @@ void launch_command(char* cmd)
 	if (strcmp(args[0], "echo") == 0)
 	{
 		do_echo(args[1]);
+	}
+	else if (strcmp(args[0], "ps") == 0)
+	{
+		do_ps();
 	}
 }
 
