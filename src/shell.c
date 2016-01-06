@@ -34,22 +34,22 @@ void launch_command(char* cmd)
 int start_shell()
 {
 	//fb_prompt();
-	
+	int i = 0;
 	// Read line
-	char* m = "echo Hello world\n";
+	char* m = "ps";
 	
 	// Call corresponding command
 	int pid = sys_fork();
 	if (pid == 0)
 	{
 		launch_command(m);
+		sys_exit(0);
 	}
 	else
 	{
 		int cmd_status;
 		sys_waitpid(pid, &cmd_status);
 	}
-	
 	sys_exit(0);
 	return 0;
 }
