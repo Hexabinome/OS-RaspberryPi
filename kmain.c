@@ -13,8 +13,6 @@ void kmain()
 	
 	hw_init();
 	FramebufferInitialize();
-	
-	fb_prompt(); // for test purpose
 
 	create_process(&start_shell);
 	

@@ -411,3 +411,30 @@ void data_handler()
 	sys_exit(-1);
 	//terminate_kernel();
 }
+
+void insert_fb_address_in_mem(uint32_t fb_address, uint32_t max_address)
+{
+	switch_mmu_to_kernel();
+	
+	uint32_t i;
+	for (i = fb_address; i <= max_address; i += (1 << 12))
+	{
+		// Fill first level table
+		uint32_t* first_lvl_desc_addr = get_first_lvl_descriptor_addr((uint32_t**) MMUTABLEBASE, i);
+		if (is_forbidden_address(*first_lvl_desc_addr))
+		{
+			// alloc new 2nd table page lvl
+			*(first_lvl_desc_addr) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG);
+			*(first_lvl_desc_addr) |= first_table_flags;
+		}
+		
+		// Fill second level table
+		set_second_table_value((uint32_t**) MMUTABLEBASE, i, i);
+		
+		// Update frame table
+		uint32_t frame_idx = divide(i, 4096);
+		frame_table[frame_idx] = FRAME_OCCUPIED;
+	}
+	
+	switch_mmu_to(current_process);
+}
