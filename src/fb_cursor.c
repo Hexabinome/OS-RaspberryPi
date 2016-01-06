@@ -2,15 +2,12 @@
 
 #include "fb.h"
 #include "hw.h"
-#include "sched.h"
-#include "process.h"
-#include "vmem.h"
 
 
 #define BITMAP_SIZE 8
 #define DEFAULT_FONT_SIZE 8
 extern const uint64_t font[128];
-extern struct pcb_s* current_process;
+
 extern uint32_t fb_x, fb_y;
 
 static uint32_t cursor_x = 0;
@@ -51,19 +48,13 @@ static uint8_t is_cursor_at(const uint32_t x, const uint32_t y);
 
 void fb_prompt()
 {
-	switch_mmu_to_kernel();
-	
 	fb_print_text(prompt);
 	prompt_x = cursor_x;
 	prompt_y = cursor_y;
-	
-	switch_mmu_to(current_process);
 }
 
 void fb_print_text(const char* const msg)
 {
-	switch_mmu_to_kernel();
-	
 	uint32_t i = 0;
 	char c = msg[i++];
 	while (c != '\0')
@@ -71,14 +62,10 @@ void fb_print_text(const char* const msg)
 		fb_print_char(c);
 		c = msg[i++];
 	}
-	
-	switch_mmu_to(current_process);
 }
 
 void fb_print_char(const char c)
 {
-	switch_mmu_to_kernel();
-	
     if (!is_cursor_at_end())
 	{
 		move_chars_right();
@@ -99,8 +86,7 @@ void fb_print_char(const char c)
 		move_right(&cursor_x, &cursor_y);
 	    move_right(&end_x, &end_y);
 	}
-	
-	switch_mmu_to(current_process);
+
 }
 
 static uint8_t is_cursor_at_end()
@@ -153,8 +139,6 @@ static uint64_t get_bitmap_pixel_color(const uint64_t bitmap, const uint8_t x, c
 
 void fb_backspace()
 {
-	switch_mmu_to_kernel();
-	
 	if (is_cursor_at_prompt())
 	{
 		// TODO play sound
@@ -163,8 +147,6 @@ void fb_backspace()
 	
 	move_left(&cursor_x, &cursor_y);
 	fb_delete();
-	
-	switch_mmu_to(current_process);
 }
 
 static uint8_t is_cursor_at_prompt()
@@ -174,8 +156,6 @@ static uint8_t is_cursor_at_prompt()
 
 void fb_delete()
 {
-	switch_mmu_to_kernel();
-	
 	if (is_cursor_at_end())
 	{
 		// TODO play sound
@@ -190,14 +170,10 @@ void fb_delete()
 	}
 
 	move_left(&end_x, &end_y);
-	
-	switch_mmu_to(current_process);
 }
 
 void fb_move_cursor_left()
 {
-	switch_mmu_to_kernel();
-	
 	if (is_cursor_at_prompt())
 	{
 		// TODO play sound
@@ -205,14 +181,10 @@ void fb_move_cursor_left()
 	}
 
 	move_left(&cursor_x, &cursor_y);
-	
-	switch_mmu_to(current_process);
 }
 
 void fb_move_cursor_right()
 {
-	switch_mmu_to_kernel();
-	
 	if (is_cursor_at_end())
 	{
 		// TODO play sound
@@ -220,22 +192,16 @@ void fb_move_cursor_right()
 	}
 
 	move_right(&cursor_x, &cursor_y);
-	
-	switch_mmu_to(current_process);
 }
 
 void fb_clear()
 {
-	switch_mmu_to_kernel();
-	
 	paint_all_black();
 
 	cursor_x = 0;
 	cursor_y = 0;
 
 	fb_prompt();
-	
-	switch_mmu_to(current_process);
 }
 
 void fb_set_zoom(const uint8_t new_zoom) // TODO should update all the current written characters
