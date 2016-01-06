@@ -74,13 +74,23 @@ uint32_t MailboxRead(uint32_t mailbox)
 /*
  * Fonction permettant de dessiner un pixel à l'adresse x,y avec la couleur rgb red.green.blue
  */
+#include "vmem.h"
+#include "process.h"
+#include "sched.h"
+extern struct pcb_s* current_process;
 void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t blue)
 {
 	volatile uint32_t *ptr=0;
 	uint32_t offset=0;
 
 	offset = (y * pitch) + (x * 3);
+#if VMEM
+	ptr = (uint32_t*)(fb_address + 0x10000000 + offset);
+	uint32_t pa = vmem_translate((uint32_t) ptr, current_process);
+	++pa;
+#else
 	ptr = (uint32_t*)(fb_address + offset);
+#endif
 	*((uint8_t*)ptr) = red;
 	*((uint8_t*)(ptr+1)) = green;
 	*((uint8_t*)(ptr+2)) = blue;
@@ -93,7 +103,11 @@ void get_pixel_RGB24(uint32_t x, uint32_t y, uint8_t* red, uint8_t* green, uint8
 	uint32_t offset=0;
 
 	offset = (y * pitch) + (x * 3);
+#if VMEM
+	ptr = (uint32_t*)(fb_address + 0x10000000 + offset);
+#else
 	ptr = (uint32_t*)(fb_address + offset);
+#endif
 	*red = *((uint8_t*)ptr);
 	*green = *((uint8_t*)(ptr+1));
 	*blue = *((uint8_t*)(ptr+2));
@@ -274,10 +288,15 @@ void drawRed() {
 /*
  * Rempli l'écran de blanc
  */
+ #include "hw.h"
 void drawBlue() {
   uint32_t x=0, y=0;
   for (x = 0; x < fb_x; x++) {
     for (y = 0; y < fb_y; y++) {
+		log_int(x);
+		log_str(" ");
+		log_int(y);
+		log_str("\n");
       put_pixel_RGB24(x,y,0,0,255);
     }
   }

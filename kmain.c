@@ -13,7 +13,7 @@ void kmain()
 	
 	hw_init();
 	FramebufferInitialize();
-	
+	drawBlue();
 	fb_prompt(); // for test purpose
 
 	create_process(&start_shell);

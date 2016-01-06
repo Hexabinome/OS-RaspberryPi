@@ -131,7 +131,27 @@ uint32_t** init_translation_table(void)
 
         *second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
     }
-	
+    
+    // Map from 0x2c100000 to 0x2c1e0ffd(verify) as 0x1c100000 to 0x2c1e0ffd (for framebuffer)
+    for(i = (0x2c100000 >> 20); i <= (0x2c1e0ffd >> 20); i++) 
+	{
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
+		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
+	}
+	// Fill second level tables
+	for(log_addr = 0x2c100000; log_addr <= 0x2c1e0ffd; log_addr += PAGE_SIZE)
+    {
+        first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
+
+		first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+		second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+		second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
+        *second_level_descriptor_address = ((log_addr - 0x10000000) & 0xFFFFF000) | device_flags;
+    }
+
 	return page_table;
 }
 
