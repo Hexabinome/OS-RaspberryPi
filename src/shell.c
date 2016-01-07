@@ -11,7 +11,7 @@ typedef void (command_t) (char**);
 
 static char** parse_command(char* cmd)
 {
-	// TODO parse more than one argument
+	// TODO parse each argument into a different pointer. not all args in args[1]
 	char* space = strtok(cmd, ' ');
 	space++;
 	
@@ -43,7 +43,8 @@ int start_shell()
 	//fb_prompt();
 	
 	// Read line
-	char* cmd_line = "ps";
+	//char* cmd_line = "echo Hello world\n";
+	char* cmd_line = "ps\n";
 	//fb_print_text(cmd_line);
 	
 	char** args = parse_command(cmd_line);
