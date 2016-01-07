@@ -2,16 +2,16 @@
 #include "syscall.h"
 #include "fb_cursor.h"
 #include "string.h"
-#include "hw.h"
 #include "malloc.h"
+#include "shell_commands.h"
+#include "config.h"
+#include "hw.h"
 
-void do_echo(char* args)
-{
-	fb_print_text(args);
-}
+typedef void (command_t) (char**);
 
 static char** parse_command(char* cmd)
 {
+	// TODO parse each argument into a different pointer. not all args in args[1]
 	char* space = strtok(cmd, ' ');
 	space++;
 	
@@ -22,14 +22,18 @@ static char** parse_command(char* cmd)
 	return args;
 }
 
-void launch_command(char* cmd)
+static command_t* find_command(char* cmd_name)
 {
-	char** args = parse_command(cmd);
-	if (strcmp(args[0], "echo") == 0)
+	if (strcmp(cmd_name, "echo") == 0)
 	{
-		do_echo(args[1]);
+		return do_echo;
 	}
-	fb_print_char('\n');
+	else if (strcmp(cmd_name, "ps") == 0)
+	{
+		return do_ps;
+	}
+	
+	return NULL;
 }
 
 
@@ -39,22 +43,34 @@ int start_shell()
 	fb_prompt();
 	
 	// Read line
-	char* m = "echo Hello world\n";
-	fb_print_text(m);
+	char* cmd_line = "echo Hello world\n";
+	//char* cmd_line = "ps\n";
+	fb_print_text(cmd_line);
 	
-	// Call corresponding command
-	int pid = sys_fork();
-	if (pid == 0)
+	char** args = parse_command(cmd_line);
+	
+	command_t* command = find_command(args[0]);
+	if (command == NULL)
 	{
-		launch_command(m);
+		fb_print_text("Command not found\n");
 	}
 	else
 	{
-		int cmd_status;
-		sys_waitpid(pid, &cmd_status);
+		int pid = sys_fork();
+		if (pid == 0)
+		{
+			command(args+1); // skip command name
+			sys_exit(0);
+		}
+		else
+		{
+			int cmd_status;
+			sys_waitpid(pid, &cmd_status);
+			// TODO fill shell variable of last return code: $?
+			fb_print_char('\n');
+		}
 	}
 	
-	sys_exit(0);
 	return 0;
 }
 
