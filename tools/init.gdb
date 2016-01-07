@@ -17,8 +17,6 @@ b *kmain
 b irq_handler
 b data_handler
 
-b kmain.c:18
-b kmain.c:24
 b process
 b do_sys_fork
 

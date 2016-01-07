@@ -3,7 +3,6 @@
 #include "shell.h"
 #include "fb.h"
 #include "hw.h"
-#include "fb_cursor.h"
 
 extern struct pcb_s* current_process;
 
@@ -13,8 +12,6 @@ void kmain()
 	
 	hw_init();
 	FramebufferInitialize();
-	drawBlue();
-	fb_prompt(); // for test purpose
 
 	create_process(&start_shell);
 	

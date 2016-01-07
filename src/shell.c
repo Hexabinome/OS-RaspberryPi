@@ -39,7 +39,7 @@ int start_shell()
 	fb_prompt();
 	
 	// Read line
-	char* m = "echo Hello world";
+	char* m = "echo Hello world\n";
 	fb_print_text(m);
 	
 	// Call corresponding command
