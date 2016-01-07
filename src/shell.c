@@ -9,7 +9,7 @@
 
 typedef void (command_t) (char**);
 
-static char** parse_command(char* cmd)
+char** parse_command(char* cmd, int* argc)
 {
 	// TODO parse each argument into a different pointer. not all args in args[1]
 	char* space = strtok(cmd, ' ');
@@ -18,6 +18,8 @@ static char** parse_command(char* cmd)
 	char** args = (char**) gmalloc(sizeof(char*) * 2);
 	args[0] = cmd;
 	args[1] = space;
+	
+	*argc = 2;
 	
 	return args;
 }
@@ -45,9 +47,10 @@ int start_shell()
 	// Read line
 	//char* cmd_line = "echo Hello world\n";
 	char* cmd_line = "ps\n";
+	int argc;
 	//fb_print_text(cmd_line);
 	
-	char** args = parse_command(cmd_line);
+	char** args = parse_command(cmd_line, &argc);
 	
 	command_t* command = find_command(args[0]);
 	if (command == NULL)

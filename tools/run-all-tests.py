@@ -51,7 +51,8 @@ tests = [
 	["kmain-fork.c", "fork.gdb"],
 	["kmain-fork-gmalloc.c", "fork-gmalloc.gdb"],
 	["kmain-gmalloc-gfree.c", "gmalloc-gfree.gdb"],
-	["kmain-fork-wait-waitpid.c", "fork-wait-waitpid.gdb"]
+	["kmain-fork-wait-waitpid.c", "fork-wait-waitpid.gdb"],
+	["kmain-command-parser.c", "command-parser.gdb"]
 ]
 
 if __name__ == "__main__":
