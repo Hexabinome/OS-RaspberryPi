@@ -24,7 +24,7 @@ define assert_results
   set $ok *= ($3 == "my")
   set $ok *= ($4 == "name")
   set $ok *= ($5 == "is")
-  set $ok *= ($6 == "david")
+  set $ok *= ($6 == "david wobrock")
   
   if $ok
     printf "test OK\n"

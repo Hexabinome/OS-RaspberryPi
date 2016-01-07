@@ -10,7 +10,7 @@ void kmain()
 {
 	sched_init();
 
-	char* cmd = "hello    my name  is         david   \n";
+	char* cmd = "hello    my name  is         \"david wobrock\"\n";
 	int argc;
 	char** res = parse_command(cmd, &argc);
 	return;
