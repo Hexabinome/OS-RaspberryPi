@@ -6,13 +6,18 @@
 
 extern struct pcb_s* current_process;
 
-void do_echo(char* message)
+void do_echo(char** args)
 {
-	log_str(message);
+	uint32_t i = 0;
+	char* word;
+	while ((word = args[i++]) != '\0')
+	{
+		log_str(word);
+	}
 }
 
 
-void print_process(struct pcb_s* process)
+static void print_process(struct pcb_s* process)
 {
 	log_str("\npid: ");
 	log_int(process->pid);
@@ -26,7 +31,7 @@ void print_process(struct pcb_s* process)
 
 }
 
-void do_ps()
+void do_ps(char** args)
 {
 	struct pcb_s* process = current_process;	
 	while(process != current_process->previous)

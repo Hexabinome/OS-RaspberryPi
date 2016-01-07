@@ -4,9 +4,14 @@
 #include "string.h"
 #include "malloc.h"
 #include "shell_commands.h"
+#include "config.h"
+#include "hw.h"
+
+typedef void (command_t) (char**);
 
 static char** parse_command(char* cmd)
 {
+	// TODO parse more than one argument
 	char* space = strtok(cmd, ' ');
 	space++;
 	
@@ -17,40 +22,55 @@ static char** parse_command(char* cmd)
 	return args;
 }
 
-void launch_command(char* cmd)
+static command_t* find_command(char* cmd_name)
 {
-	char** args = parse_command(cmd);
-	if (strcmp(args[0], "echo") == 0)
+	if (strcmp(cmd_name, "echo") == 0)
 	{
-		do_echo(args[1]);
+		return do_echo;
 	}
-	else if (strcmp(args[0], "ps") == 0)
+	else if (strcmp(cmd_name, "ps") == 0)
 	{
-		do_ps();
+		return do_ps;
 	}
+	
+	return NULL;
 }
 
 
 int start_shell()
 {
+	//while (1)
 	//fb_prompt();
-	int i = 0;
-	// Read line
-	char* m = "ps";
 	
-	// Call corresponding command
-	int pid = sys_fork();
-	if (pid == 0)
+	// Read line
+	char* cmd_line = "ps";
+	//fb_print_text(cmd_line);
+	
+	char** args = parse_command(cmd_line);
+	
+	command_t* command = find_command(args[0]);
+	if (command == NULL)
 	{
-		launch_command(m);
-		sys_exit(0);
+		log_str("Command not found\n");
 	}
 	else
 	{
-		int cmd_status;
-		sys_waitpid(pid, &cmd_status);
+		int pid = sys_fork();
+		if (pid == 0)
+		{
+			command(args+1); // skip command name
+			sys_exit(0);
+		}
+		else
+		{
+			int cmd_status;
+			sys_waitpid(pid, &cmd_status);
+			// TODO fill shell variable of last return code: $?
+			log_str("\n");
+			//fb_print_char('\n');
+		}
 	}
-	sys_exit(0);
+	
 	return 0;
 }
 
