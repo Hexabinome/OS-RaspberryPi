@@ -8,12 +8,13 @@ extern struct pcb_s* current_process;
 
 void do_echo(char** args)
 {
-	uint32_t i = 0;
+	/*uint32_t i = 0;
 	char* word;
 	while ((word = args[i++]) != '\0')
 	{
 		log_str(word);
-	}
+	}*/
+	log_str(args[0]);
 }
 
 
