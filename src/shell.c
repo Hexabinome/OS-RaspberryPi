@@ -19,7 +19,7 @@ static void clean_command(char * cmd)
 		i++;
 	}
 	cmd[i] = '\0';
-		
+
 }
 
 static char** parse_command(char* cmd, int* argc)
@@ -28,13 +28,13 @@ static char** parse_command(char* cmd, int* argc)
 	clean_command(cmd);
 	char* space = strtok(cmd, ' ');
 	space++;
-	
+
 	char** args = (char**) gmalloc(sizeof(char*) * 2);
 	args[0] = cmd;
 	args[1] = space;
-	
+
 	*argc = 2;
-	
+
 	return args;
 }
 
@@ -56,7 +56,7 @@ static command_t* find_command(char* cmd_name)
 	{
 		return do_music;
 	}
-	
+
 	return NULL;
 }
 
@@ -65,17 +65,17 @@ int start_shell()
 {
 	//while (1)
 	fb_prompt();
-	
+
 	// Read line
 	//char* cmd_line = "fork\n";
 	//char* cmd_line = "ps\n";
 	char* cmd_line = "echo Hello world\n";
 	fb_print_text(cmd_line);
-	
+
 	int argc;
-	
+
 	char** args = parse_command(cmd_line, &argc);
-	
+
 	command_t* command = find_command(args[0]);
 	if (command == NULL)
 	{
@@ -96,7 +96,7 @@ int start_shell()
 			// TODO fill shell variable of last return code: $?
 		}
 	}
-	
+
 	return 0;
 }
 

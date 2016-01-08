@@ -7,8 +7,8 @@
  ******** Utilities ********
  ***************************/
 uint64_t
-divide(uint64_t x, uint64_t y) {
-    int quotient = 0;
+divide(register uint64_t x, register uint64_t y) {
+    register int quotient = 0;
     while (x >= y) {
         x  -=  y;
         quotient++;

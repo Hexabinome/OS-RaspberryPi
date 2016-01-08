@@ -91,18 +91,27 @@ void fb_print_char(const char c)
 
 }
 
-void fb_print_int(const int x)
+void fb_print_int(register const int x)
 {
 	if(x ==0)
 	{
 		fb_print_char(OFFSET);
 		return;
 	}
+	char string[16];
+	int_to_str(string,x);
+	int i = 0;
+	for(i=0; i<16; i++)
+	{
+		//if(string[i])
 		
+		fb_print_char(string[i]);
+	}
+	/*	
 	int digit;
 	int tmp = x;
 	int i = 0;
-	int a,b;
+	register int a,b;
 	while(tmp > 0)
 	{
 		tmp = divide(tmp,10);
@@ -115,7 +124,7 @@ void fb_print_int(const int x)
 		digit = mod(b,10);
 		fb_print_char(digit + OFFSET);
 		i--;
-	}	
+	}	*/
 }
 
 static uint8_t is_cursor_at_end()
