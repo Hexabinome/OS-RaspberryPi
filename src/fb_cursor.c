@@ -3,9 +3,11 @@
 #include "fb.h"
 #include "hw.h"
 
+#include "util.h"
 
 #define BITMAP_SIZE 8
 #define DEFAULT_FONT_SIZE 8
+#define OFFSET 48
 extern const uint64_t font[128];
 
 extern uint32_t fb_x, fb_y;
@@ -87,6 +89,33 @@ void fb_print_char(const char c)
 	    move_right(&end_x, &end_y);
 	}
 
+}
+
+void fb_print_int(const int x)
+{
+	if(x ==0)
+	{
+		fb_print_char(OFFSET);
+		return;
+	}
+		
+	int digit;
+	int tmp = x;
+	int i = 0;
+	int a,b;
+	while(tmp > 0)
+	{
+		tmp = divide(tmp,10);
+		i++;
+	}
+	while(i > 0)
+	{
+		a = pow(10,i-1);
+		b = divide(x,a);
+		digit = mod(b,10);
+		fb_print_char(digit + OFFSET);
+		i--;
+	}	
 }
 
 static uint8_t is_cursor_at_end()

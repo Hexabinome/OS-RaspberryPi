@@ -3,6 +3,7 @@
 #include "shell.h"
 #include "fb.h"
 #include "hw.h"
+#include "fb_cursor.h"
 
 extern struct pcb_s* current_process;
 
@@ -12,9 +13,8 @@ void kmain()
 	
 	hw_init();
 	FramebufferInitialize();
-
-	create_process(&start_shell);
 	
+	create_process(&start_shell);
 	irq_init();
 	
 	__asm("cps 0x10"); // CPU to USER mode
