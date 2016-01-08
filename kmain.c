@@ -29,6 +29,9 @@ int process()
 
 void kmain()
 {
+	//	audio_test();	
+
+
 	sched_init();
 	
 	create_process(&process);

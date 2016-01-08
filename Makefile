@@ -19,7 +19,7 @@ CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-f
 COMMON_FLAGS=-mcpu=arm1176jzf-s
 
 # Object files (excluding kmain)
-OBJECTS=build/tune.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
+OBJECTS=build/tune.o build/fbe1.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
 
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
@@ -42,6 +42,8 @@ build:
 	
 #Compilation du fichier .wav
 build/tune.o : sounds/tune.wav
+	arm-none-eabi-ld -s -r -o $@ -b binary $^
+build/fbe1.o : sounds/fbe1.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune1.o : sounds/B4.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^

@@ -8,6 +8,7 @@ extern char _binary_sounds_D_4_wav_start;
 extern char _binary_sounds_E1_wav_start;
 extern char _binary_sounds_F3_wav_start;
 extern char _binary_sounds_G6_wav_start;
+extern char _binary_sounds_fbe1_wav_start;
 
 static volatile unsigned* gpio = (void*)GPIO_BASE;
 static volatile unsigned* clk = (void*)CLOCK_BASE;
@@ -21,6 +22,11 @@ char* audio_data3 = &_binary_sounds_D_4_wav_start;
 char* audio_data4 = &_binary_sounds_E1_wav_start;
 char* audio_data5 = &_binary_sounds_F3_wav_start;
 char* audio_data6 = &_binary_sounds_G6_wav_start;
+char* audio_data7 = &_binary_sounds_fbe1_wav_start;
+
+// Skipper is the amount of samples to be skipped after every played sample.
+// Example 0: play all samples, 3: play one out of 4 samples.
+int skipper = 0;
 
 void pause(int t) {
     // Pause for about t ms
@@ -36,8 +42,16 @@ void pause(int t) {
 void audio_init(void)
 {
     unsigned int range = 0x400;
-    unsigned int idiv = 2;
-    //unsigned int pwmFrequency = (19200000 / idiv) / range; 
+    
+    // The playback pitch correction can be adjusted using the ratio of idiv to (skipper+1)
+    // The optimal ratio is close to a pitch correction of = 1.14
+    // Unfortunately the played back audio quality suffers under-sampling as skipper increases, 
+    // So we have to find a trade of between reaching the propper frequency and preserving audio quality.
+    // This is doable by picking skipper = 1, idiv = 2
+    // Note: this cannot be acomplished without skipper ans idiv=1, since idiv does not work if <2
+    skipper = 1;//3;
+    unsigned int idiv = 2;//4;
+    //unsigned int pwmFrequency = (19200000 * pitch_converter / idiv) / range; 
 
     SET_GPIO_ALT(40, 0);
     SET_GPIO_ALT(45, 0);
@@ -98,6 +112,9 @@ void playSound(int soundNumber)
 		case 6:
 			soundToPlay	= audio_data6;
 			break;
+		case 7:
+			soundToPlay	= audio_data7;
+			break;
 	}
     
     while (i < 100000)
@@ -106,7 +123,7 @@ void playSound(int soundNumber)
 		if (!(status & BCM2835_FULL1))
 		{
 			/* Decomment this in order to get sound */
-			*(pwm+BCM2835_PWM_FIFO) = soundToPlay[i];
+			*(pwm+BCM2835_PWM_FIFO) = soundToPlay[i*(skipper+1)];
 			i++;
 		}
 		  
@@ -124,32 +141,5 @@ void audio_test()
 {
     audio_init();
     
-    playSound(6);
+    playSound(7);
 }
-
-void audio_tick()
-{
-	int i=0;
-    long status;
-    char* soundToPlay = audio_data6;
-
-    while (i < 2000)
-    {
-		status =  *(pwm + BCM2835_PWM_STATUS);
-		if (!(status & BCM2835_FULL1))
-		{
-			/* Decomment this in order to get sound */
-			*(pwm+BCM2835_PWM_FIFO) = soundToPlay[i];
-			i++;
-		}
-		  
-		if ((status & ERRORMASK)) {
-			//                uart_print("error: ");
-			//                hexstring(status);
-			//                uart_print("\r\n");
-			*(pwm+BCM2835_PWM_STATUS) = ERRORMASK;
-		}
-    }
-}
-
-
