@@ -1,25 +1,19 @@
 #include "sched.h"
 #include "sched_irq.h"
-#include "shell.h"
-#include "fb.h"
-#include "hw.h"
 #include "kheap.h"
+#include "malloc.h"
 
 static void init()
 {
 	kheap_init();
-	hw_init();
-	FramebufferInitialize();
 	sched_init();
-	
-    //create_process(&start_shell);
-	irq_init();
 }
 
-#include "malloc.h"
 void kmain()
 {
 	init();
+	
+	__asm("cps 0x10"); // CPU to USER mode
 	
 	int* momo = gmalloc(sizeof(int) * 5);
 	momo[0] = 45;
@@ -27,8 +21,16 @@ void kmain()
 	
 	momo = grealloc(momo, sizeof(int) * 10);
 	
+	int* dada = gmalloc(sizeof(int) * 20);
 	
-	__asm("cps 0x10"); // CPU to USER mode
-
+	gfree(momo);
+	
+	int* jojo = gmalloc(sizeof(int) * 5); // takes the place of momo
+	jojo[4] = 123;
+	
+	int* jojo2 = grealloc(jojo, sizeof(int) * 50);
+	
 	while (1) ;
+	
+	dada++; jojo2++;
 }

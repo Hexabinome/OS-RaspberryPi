@@ -13,6 +13,7 @@ struct heap_block
 #define HEAP_BLOCK_SIZE sizeof(struct heap_block)
 
 void* gmalloc(unsigned int size);
+void* grealloc(void* ptr, unsigned int size);
 void gfree(void* addr);
 
 #endif // MALLOC_H
