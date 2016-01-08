@@ -19,7 +19,7 @@ CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-f
 COMMON_FLAGS=-mcpu=arm1176jzf-s
 
 # Object files (excluding kmain)
-OBJECTS=build/10-8bit-mono.o build/11-8bit-mono.o build/12-8bit-mono.o build/13-8bit-mono.o build/14-8bit-mono.o build/15-8bit-mono.o build/16-8bit-mono.o build/17-8bit-mono.o build/18-8bit-mono.o build/1-8bit-mono.o build/19-8bit-mono.o build/20-8bit-mono.o build/21-8bit-mono.o build/22-8bit-mono.o build/23-8bit-mono.o build/24-8bit-mono.o build/2-8bit-mono.o build/3-8bit-mono.o build/4-8bit-mono.o build/5-8bit-mono.o build/6-8bit-mono.o build/7-8bit-mono.o build/8-8bit-mono.o build/9-8bit-mono.o build/tune.o build/fbe1.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
+OBJECTS=build/108bitmono.o build/118bitmono.o build/128bitmono.o build/138bitmono.o build/148bitmono.o build/158bitmono.o build/168bitmono.o build/178bitmono.o build/188bitmono.o build/18bitmono.o build/198bitmono.o build/208bitmono.o build/218bitmono.o build/228bitmono.o build/238bitmono.o build/248bitmono.o build/28bitmono.o build/38bitmono.o build/48bitmono.o build/58bitmono.o build/68bitmono.o build/78bitmono.o build/88bitmono.o build/98bitmono.o build/tune.o build/fbe1.o build/tune1.o build/tune2.o build/tune3.o build/tune4.o build/tune5.o build/tune6.o $(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
 
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
@@ -42,53 +42,53 @@ build:
 	
 #Compilation du fichier .wav
 # for i in *mono*; do echo "build/$(basename -s .wav $i).o : sounds/$i"; echo "arm-none-eabi-ld -s -r -o \$@ -b binary $^"; done >> /tmp/kt
-build/10-8bit-mono.o : sounds/10-8bit-mono.wav
+build/108bitmono.o : sounds/108bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/11-8bit-mono.o : sounds/11-8bit-mono.wav
+build/118bitmono.o : sounds/118bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/12-8bit-mono.o : sounds/12-8bit-mono.wav
+build/128bitmono.o : sounds/128bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/13-8bit-mono.o : sounds/13-8bit-mono.wav
+build/138bitmono.o : sounds/138bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/14-8bit-mono.o : sounds/14-8bit-mono.wav
+build/148bitmono.o : sounds/148bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/15-8bit-mono.o : sounds/15-8bit-mono.wav
+build/158bitmono.o : sounds/158bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/16-8bit-mono.o : sounds/16-8bit-mono.wav
+build/168bitmono.o : sounds/168bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/17-8bit-mono.o : sounds/17-8bit-mono.wav
+build/178bitmono.o : sounds/178bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/18-8bit-mono.o : sounds/18-8bit-mono.wav
+build/188bitmono.o : sounds/188bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/1-8bit-mono.o : sounds/1-8bit-mono.wav
+build/18bitmono.o : sounds/18bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/19-8bit-mono.o : sounds/19-8bit-mono.wav
+build/198bitmono.o : sounds/198bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/20-8bit-mono.o : sounds/20-8bit-mono.wav
+build/208bitmono.o : sounds/208bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/21-8bit-mono.o : sounds/21-8bit-mono.wav
+build/218bitmono.o : sounds/218bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/22-8bit-mono.o : sounds/22-8bit-mono.wav
+build/228bitmono.o : sounds/228bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/23-8bit-mono.o : sounds/23-8bit-mono.wav
+build/238bitmono.o : sounds/238bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/24-8bit-mono.o : sounds/24-8bit-mono.wav
+build/248bitmono.o : sounds/248bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/2-8bit-mono.o : sounds/2-8bit-mono.wav
+build/28bitmono.o : sounds/28bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/3-8bit-mono.o : sounds/3-8bit-mono.wav
+build/38bitmono.o : sounds/38bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/4-8bit-mono.o : sounds/4-8bit-mono.wav
+build/48bitmono.o : sounds/48bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/5-8bit-mono.o : sounds/5-8bit-mono.wav
+build/58bitmono.o : sounds/58bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/6-8bit-mono.o : sounds/6-8bit-mono.wav
+build/68bitmono.o : sounds/68bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/7-8bit-mono.o : sounds/7-8bit-mono.wav
+build/78bitmono.o : sounds/78bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/8-8bit-mono.o : sounds/8-8bit-mono.wav
+build/88bitmono.o : sounds/88bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
-build/9-8bit-mono.o : sounds/9-8bit-mono.wav
+build/98bitmono.o : sounds/98bitmono.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^
 build/tune.o : sounds/tune.wav
 	arm-none-eabi-ld -s -r -o $@ -b binary $^

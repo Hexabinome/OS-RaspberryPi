@@ -9,12 +9,38 @@ extern char _binary_sounds_E1_wav_start;
 extern char _binary_sounds_F3_wav_start;
 extern char _binary_sounds_G6_wav_start;
 extern char _binary_sounds_fbe1_wav_start;
+extern char _binary_sounds_108bitmono_wav_start;
+extern char _binary_sounds_118bitmono_wav_start;
+extern char _binary_sounds_128bitmono_wav_start;
+extern char _binary_sounds_138bitmono_wav_start;
+extern char _binary_sounds_148bitmono_wav_start;
+extern char _binary_sounds_158bitmono_wav_start;
+extern char _binary_sounds_168bitmono_wav_start;
+extern char _binary_sounds_178bitmono_wav_start;
+extern char _binary_sounds_188bitmono_wav_start;
+extern char _binary_sounds_18bitmono_wav_start;
+extern char _binary_sounds_198bitmono_wav_start;
+extern char _binary_sounds_208bitmono_wav_start;
+extern char _binary_sounds_218bitmono_wav_start;
+extern char _binary_sounds_228bitmono_wav_start;
+extern char _binary_sounds_238bitmono_wav_start;
+extern char _binary_sounds_248bitmono_wav_start;
+extern char _binary_sounds_28bitmono_wav_start;
+extern char _binary_sounds_38bitmono_wav_start;
+extern char _binary_sounds_48bitmono_wav_start;
+extern char _binary_sounds_58bitmono_wav_start;
+extern char _binary_sounds_68bitmono_wav_start;
+extern char _binary_sounds_78bitmono_wav_start;
+extern char _binary_sounds_88bitmono_wav_start;
+extern char _binary_sounds_98bitmono_wav_start;
+
 
 static volatile unsigned* gpio = (void*)GPIO_BASE;
 static volatile unsigned* clk = (void*)CLOCK_BASE;
 static volatile unsigned* pwm = (void*)PWM_BASE;
 
 /* Decomment this in order to get sound */
+//for i in *mono*; do echo -n "char* audio_data"; echo -n $(basename -s .wav $i);echo -n "= &_binary_sounds_"; echo -n $(basename -s .wav $i) ; echo "_wav_start;"; done
 char* audio_data = &_binary_sounds_tune_wav_start;
 char* audio_data1 = &_binary_sounds_B4_wav_start;
 char* audio_data2 = &_binary_sounds_C1_1_wav_start;
@@ -23,6 +49,31 @@ char* audio_data4 = &_binary_sounds_E1_wav_start;
 char* audio_data5 = &_binary_sounds_F3_wav_start;
 char* audio_data6 = &_binary_sounds_G6_wav_start;
 char* audio_data7 = &_binary_sounds_fbe1_wav_start;
+char* audio_data108bitmono= &_binary_sounds_108bitmono_wav_start;
+char* audio_data118bitmono= &_binary_sounds_118bitmono_wav_start;
+char* audio_data128bitmono= &_binary_sounds_128bitmono_wav_start;
+char* audio_data138bitmono= &_binary_sounds_138bitmono_wav_start;
+char* audio_data148bitmono= &_binary_sounds_148bitmono_wav_start;
+char* audio_data158bitmono= &_binary_sounds_158bitmono_wav_start;
+char* audio_data168bitmono= &_binary_sounds_168bitmono_wav_start;
+char* audio_data178bitmono= &_binary_sounds_178bitmono_wav_start;
+char* audio_data188bitmono= &_binary_sounds_188bitmono_wav_start;
+char* audio_data18bitmono= &_binary_sounds_18bitmono_wav_start;
+char* audio_data198bitmono= &_binary_sounds_198bitmono_wav_start;
+char* audio_data208bitmono= &_binary_sounds_208bitmono_wav_start;
+char* audio_data218bitmono= &_binary_sounds_218bitmono_wav_start;
+char* audio_data228bitmono= &_binary_sounds_228bitmono_wav_start;
+char* audio_data238bitmono= &_binary_sounds_238bitmono_wav_start;
+char* audio_data248bitmono= &_binary_sounds_248bitmono_wav_start;
+char* audio_data28bitmono= &_binary_sounds_28bitmono_wav_start;
+char* audio_data38bitmono= &_binary_sounds_38bitmono_wav_start;
+char* audio_data48bitmono= &_binary_sounds_48bitmono_wav_start;
+char* audio_data58bitmono= &_binary_sounds_58bitmono_wav_start;
+char* audio_data68bitmono= &_binary_sounds_68bitmono_wav_start;
+char* audio_data78bitmono= &_binary_sounds_78bitmono_wav_start;
+char* audio_data88bitmono= &_binary_sounds_88bitmono_wav_start;
+char* audio_data98bitmono= &_binary_sounds_98bitmono_wav_start;
+
 
 // Skipper is the amount of samples to be skipped after every played sample.
 // Example 0: play all samples, 3: play one out of 4 samples.
@@ -115,6 +166,9 @@ void playSound(int soundNumber)
 		case 7:
 			soundToPlay	= audio_data7;
 			break;
+		case 8:
+			soundToPlay	= audio_data158bitmono;
+			break;
 	}
     
     while (1==1)
@@ -144,5 +198,5 @@ void audio_test()
 {
     audio_init();
     
-    playSound(7);
+    playSound(8);
 }
