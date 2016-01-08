@@ -49,7 +49,7 @@ void audio_init(void)
     // So we have to find a trade of between reaching the propper frequency and preserving audio quality.
     // This is doable by picking skipper = 1, idiv = 2
     // Note: this cannot be acomplished without skipper ans idiv=1, since idiv does not work if <2
-    skipper = 1;//3;
+    skipper = 2;//3;
     unsigned int idiv = 2;//4;
     //unsigned int pwmFrequency = (19200000 * pitch_converter / idiv) / range; 
 
@@ -117,7 +117,9 @@ void playSound(int soundNumber)
 			break;
 	}
     
-    while (i < 100000)
+    while (1==1)
+    {
+    while (i < 125000)
     {
 		status =  *(pwm + BCM2835_PWM_STATUS);
 		if (!(status & BCM2835_FULL1))
@@ -134,7 +136,8 @@ void playSound(int soundNumber)
 			*(pwm+BCM2835_PWM_STATUS) = ERRORMASK;
 		}
     }
-	
+    i=0;
+    }
 }
 
 void audio_test()
