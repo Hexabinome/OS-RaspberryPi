@@ -9,7 +9,7 @@ static int32_t fb_address;
 static int32_t fb_phy_address;
 static uint32_t fb_size_bytes;
 uint32_t pitch,depth;
-static uint32_t fb_x, fb_y;
+uint32_t fb_x, fb_y;
 
 
 /*

@@ -67,9 +67,10 @@ int start_shell()
 	fb_prompt();
 	
 	// Read line
-	//char* cmd_line = "echo Hello world\n";
 	//char* cmd_line = "fork\n";
-	char* cmd_line = "ps\n";
+	//char* cmd_line = "ps\n";
+	char* cmd_line = "echo Hello world\n";
+	int argc;
 	fb_print_text(cmd_line);
 	
 	char** args = parse_command(cmd_line, &argc);
