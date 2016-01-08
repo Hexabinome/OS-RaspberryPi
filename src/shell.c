@@ -22,7 +22,7 @@ static void clean_command(char * cmd)
 		
 }
 
-static char** parse_command(char* cmd)
+static char** parse_command(char* cmd, int* argc)
 {
 	// TODO parse each argument into a different pointer. not all args in args[1]
 	clean_command(cmd);
@@ -70,8 +70,9 @@ int start_shell()
 	//char* cmd_line = "fork\n";
 	//char* cmd_line = "ps\n";
 	char* cmd_line = "echo Hello world\n";
-	int argc;
 	fb_print_text(cmd_line);
+	
+	int argc;
 	
 	char** args = parse_command(cmd_line, &argc);
 	
