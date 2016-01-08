@@ -3,6 +3,7 @@
 #include "process.h"
 #include "sched.h"
 #include "fb_cursor.h"
+#include "syscall.h"
 
 
 extern struct pcb_s* current_process;
@@ -51,3 +52,30 @@ void do_ps(char** args)
 	print_process(process);	
 }
 
+void do_fork(char ** args)
+{
+	int pid = sys_fork();
+	if (pid == 0)
+		{
+			fb_print_text("child talking, my pid is ");
+			fb_print_int(current_process->pid);
+			fb_print_text(" and my ppid is ");
+			fb_print_int(current_process->ppid);
+			fb_print_char('\n');
+			sys_exit(0);
+		}
+		else
+		{
+			int cmd_status;
+			fb_print_text("parent talking, my pid is ");
+			fb_print_int(current_process->pid);
+			fb_print_char('\n');
+			sys_waitpid(pid, &cmd_status);
+		}
+	
+}
+
+void do_music(char** args)
+{
+	
+}

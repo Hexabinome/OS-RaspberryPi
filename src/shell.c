@@ -10,9 +10,22 @@
 
 typedef void (command_t) (char**);
 
-char** parse_command(char* cmd, int* argc)
+
+static void clean_command(char * cmd)
+{
+	int i = 0;
+	while(cmd[i] != '\n')
+	{
+		i++;
+	}
+	cmd[i] = '\0';
+		
+}
+
+static char** parse_command(char* cmd)
 {
 	// TODO parse each argument into a different pointer. not all args in args[1]
+	clean_command(cmd);
 	char* space = strtok(cmd, ' ');
 	space++;
 	
@@ -35,6 +48,14 @@ static command_t* find_command(char* cmd_name)
 	{
 		return do_ps;
 	}
+	else if (strcmp(cmd_name, "fork") == 0)
+	{
+		return do_fork;
+	}
+	else if (strcmp(cmd_name, "music") == 0)
+	{
+		return do_music;
+	}
 	
 	return NULL;
 }
@@ -47,8 +68,8 @@ int start_shell()
 	
 	// Read line
 	//char* cmd_line = "echo Hello world\n";
+	//char* cmd_line = "fork\n";
 	char* cmd_line = "ps\n";
-	int argc;
 	fb_print_text(cmd_line);
 	
 	char** args = parse_command(cmd_line, &argc);
@@ -71,7 +92,6 @@ int start_shell()
 			int cmd_status;
 			sys_waitpid(pid, &cmd_status);
 			// TODO fill shell variable of last return code: $?
-			fb_print_char('\n');
 		}
 	}
 	
