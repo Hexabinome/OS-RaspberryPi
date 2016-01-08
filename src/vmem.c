@@ -9,7 +9,6 @@
 #include "process.h"
 #include "sched.h"
 
-
 unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
 
@@ -27,6 +26,9 @@ const uint16_t device_address_page_table_idx_start = 0x20000000 >> 20;
 const uint16_t device_address_page_table_idx_end = (0x20000000 >> 20) + 16;
 
 extern struct pcb_s* current_process;
+// Variables for framebuffer
+extern uint32_t fb_address;
+extern uint32_t pitch, fb_x, fb_y;
 
 static void configure_mmu_C(uint32_t mmu_adr);
 static void start_mmu_C();
@@ -70,7 +72,7 @@ static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uin
 
 void vmem_init()
 {
-	kheap_init();
+	// kheap must already be initialized
 	
 	MMUTABLEBASE = (unsigned int) init_translation_table();
 	frame_table = init_frame_occupation_table();
@@ -136,15 +138,16 @@ uint32_t** init_translation_table(void)
     
     // Fujitsu (0x1c006000) 0x2c006000 -> 0x2c424afd (phy addr : 469786624 => 0x1c006000)
     // 899*4800 + 1599*3 = 0x41eafd
-    for(i = (0x2c006000 >> 20); i <= (0x2c424afd >> 20); i++)
-    //for(i = (0x2c100000 >> 20); i <= (0x2c2a70c0 >> 20); i++)
+    
+    // Map addresses for framebuffer
+    uint32_t fb_max_addr = fb_address + ((fb_y * pitch) + (fb_x * 3)); // formula from fb.c:put_pixel_RGB24
+    for(i = (fb_address >> 20); i <= (fb_max_addr >> 20); i++)
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for(log_addr = 0x2c006000; log_addr <= 0x2c424afd; log_addr += PAGE_SIZE)
-	//for(log_addr = 0x2c100000; log_addr <= 0x2c2a70c0; log_addr += PAGE_SIZE)
+	for(log_addr = fb_address; log_addr <= fb_max_addr; log_addr += PAGE_SIZE)
     {
         first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));

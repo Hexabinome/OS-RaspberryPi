@@ -21,8 +21,6 @@ void sched_init()
 	// Init virtual memory
 #if VMEM
 	vmem_init();
-#else
-	kheap_init();
 #endif
 
 	// Init process data structure

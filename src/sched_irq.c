@@ -9,7 +9,6 @@
 
 extern struct pcb_s* current_process;
 
-static void handle_irq(uint32_t* sp);
 static void context_save_to_pcb_irq(uint32_t* sp);
 static void context_load_from_pcb_irq(uint32_t* sp);
 
@@ -33,25 +32,17 @@ void __attribute__((naked)) irq_handler()
 	uint32_t* sp;
 	__asm("mov %0, sp" : "=r"(sp));
 	
-	handle_irq(sp);
+	context_save_to_pcb_irq(sp);
+	elect(); // calls current scheduler method
+	switch_mmu_to(current_process);
+	context_load_from_pcb_irq(sp);
+	
 	// Re-arm timer
 	set_next_tick_default();
     ENABLE_TIMER_IRQ();
 	
 	// Reload registers, put return address (lr_irq) into pc to get back to interrupted code, and load spsr => change back CPU mode
 	__asm("ldmfd sp!, {r0-r12, pc}^");
-}
-
-static void handle_irq(uint32_t* sp)
-{
-	context_save_to_pcb_irq(sp);
-
-	elect(); // calls current scheduler method
-
-	// Set translation table
-	switch_mmu_to(current_process);
-
-	context_load_from_pcb_irq(sp);
 }
 
 static void context_save_to_pcb_irq(uint32_t* sp) // Points to the beginning of process context in stack

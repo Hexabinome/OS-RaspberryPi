@@ -5,7 +5,7 @@
 /*
  * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
  */
-static int32_t fb_address;
+int32_t fb_address;
 static int32_t fb_phy_address;
 static uint32_t fb_size_bytes;
 uint32_t pitch,depth;
