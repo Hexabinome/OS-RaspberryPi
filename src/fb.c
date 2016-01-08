@@ -6,10 +6,10 @@
  * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
  */
 static int32_t fb_address;
-int32_t fb_phy_address;
+static int32_t fb_phy_address;
 static uint32_t fb_size_bytes;
-static uint32_t pitch,depth;
-uint32_t fb_x, fb_y;
+uint32_t pitch,depth;
+static uint32_t fb_x, fb_y;
 
 
 /*
@@ -235,7 +235,7 @@ int FramebufferInitialize() {
   fb_y--;
   
 #if VMEM
-  fb_address = fb_phy_address + 0x10000000; // 0x2c100000
+  fb_address = fb_phy_address + 0x10000000;
 #else
   fb_address = fb_phy_address;
 #endif
