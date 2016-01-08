@@ -6,7 +6,7 @@
  * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
  */
 static int32_t fb_address;
-static int32_t fb_phy_address;
+int32_t fb_phy_address;
 static uint32_t fb_size_bytes;
 static uint32_t pitch,depth;
 uint32_t fb_x, fb_y;
@@ -285,7 +285,6 @@ void drawRed() {
 /*
  * Rempli l'écran de blanc
  */
- #include "hw.h"
 void drawBlue() {
   uint32_t x=0, y=0;
   for (x = 0; x < fb_x; x++) {
