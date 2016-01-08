@@ -75,10 +75,6 @@ uint32_t MailboxRead(uint32_t mailbox)
 /*
  * Fonction permettant de dessiner un pixel à l'adresse x,y avec la couleur rgb red.green.blue
  */
-#include "vmem.h"
-#include "process.h"
-#include "sched.h"
-extern struct pcb_s* current_process;
 void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t blue)
 {
 	volatile uint32_t *ptr=0;
@@ -96,9 +92,11 @@ void get_pixel_RGB24(uint32_t x, uint32_t y, uint8_t* red, uint8_t* green, uint8
 {
 	volatile uint32_t *ptr=0;
 	uint32_t offset=0;
-
+// pitch 1920
+// 1600 * 900
+// 1600*3 + 900*1920 = 1732800 = 1a70c0
 	offset = (y * pitch) + (x * 3);
-	ptr = (uint32_t*)(fb_address + offset);
+	ptr = (uint32_t*)(fb_address + offset); // 0x1c100000
 	*red = *((uint8_t*)ptr);
 	*green = *((uint8_t*)(ptr+1));
 	*blue = *((uint8_t*)(ptr+2));
@@ -237,7 +235,7 @@ int FramebufferInitialize() {
   fb_y--;
   
 #if VMEM
-  fb_address = fb_phy_address + 0x10000000;
+  fb_address = fb_phy_address + 0x10000000; // 0x2c100000
 #else
   fb_address = fb_phy_address;
 #endif

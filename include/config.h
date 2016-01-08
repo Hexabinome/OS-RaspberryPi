@@ -8,6 +8,6 @@
 #define SERIAL_PRINT 1
 #define RPI 1
 #define DEBUG 1
-#define VMEM 1
+#define VMEM 0
 
 #endif

@@ -6,6 +6,7 @@
 #include "shell_commands.h"
 #include "config.h"
 #include "hw.h"
+#include "fb_cursor.h"
 
 typedef void (command_t) (char**);
 

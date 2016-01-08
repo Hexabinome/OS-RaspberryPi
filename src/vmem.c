@@ -133,15 +133,23 @@ uint32_t** init_translation_table(void)
     }
     
     // Map from 0x2c100000 to 0x2c1e0ffd(verify) as 0x1c100000 to 0x2c1e0ffd (for framebuffer)
+<<<<<<< HEAD
     // (1600*3) + (900*1920) = 1a70c0
     // Fujitsu (0x1c006000) 0x2c006000 -> 0x2c1ad0c0 (469786624 => 0x1c006000)
     for(i = (0x2c006000 >> 20); i <= (0x2c1ad0c0 >> 20); i++) //0x2c1e0ffd for emulator
+=======
+    for(i = (0x2c100000 >> 20); i <= (0x2c2a70c0 >> 20); i++) //0x2c1e0ffd for emulator
+>>>>>>> working frame when no mmu
 	{
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
+<<<<<<< HEAD
 	for(log_addr = 0x2c006000; log_addr <= 0x2c1ad0c0; log_addr += PAGE_SIZE)
+=======
+	for(log_addr = 0x2c100000; log_addr <= 0x2c2a70c0; log_addr += PAGE_SIZE)
+>>>>>>> working frame when no mmu
     {
         first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
