@@ -23,13 +23,13 @@ void do_echo(char** args)
 static void print_process(struct pcb_s* process)
 {
 	fb_print_int(process->pid);
-	
+
 	fb_print_text("      ");
 	fb_print_int(process->ppid);
-	
+
 	fb_print_text("       ");
 	fb_print_int(process->priority);
-	
+
 	fb_print_text("           ");
 	fb_print_int(process->status);
 	fb_print_text("\n");
@@ -38,7 +38,7 @@ static void print_process(struct pcb_s* process)
 void do_ps(char** args)
 {
 	struct pcb_s* process = current_process;
-	fb_print_text("\npid:   ");
+	fb_print_text("pid:   ");
 	fb_print_text("ppid:   ");
 	fb_print_text("priority:   ");
 	fb_print_text("status:   ");
@@ -49,7 +49,7 @@ void do_ps(char** args)
 		print_process(process);
 		process = process->next;
 	}
-	print_process(process);	
+	print_process(process);
 }
 
 void do_fork(char ** args)
@@ -72,10 +72,10 @@ void do_fork(char ** args)
 			fb_print_char('\n');
 			sys_waitpid(pid, &cmd_status);
 		}
-	
+
 }
 
 void do_music(char** args)
 {
-	
+
 }

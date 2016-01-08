@@ -103,11 +103,12 @@ void fb_print_int(register const int x)
 	int i = 0;
 	for(i=0; i<16; i++)
 	{
-		//if(string[i])
-		
-		fb_print_char(string[i]);
+		if(string[i]>OFFSET && string[i]<OFFSET+10)
+        {
+		    fb_print_char(string[i]);
+        }
 	}
-	/*	
+	/*
 	int digit;
 	int tmp = x;
 	int i = 0;
@@ -144,10 +145,10 @@ static void draw_bitmap(const uint64_t bitmap)
 		for (x = 0; x < BITMAP_SIZE; ++x)
 		{
 			uint64_t bitmap_color = get_bitmap_pixel_color(bitmap, x, y);
-			
+
             x_rea = to_zoomed(x) + cursor_x;
             y_rea = to_zoomed(y) + cursor_y;
-            
+
 			if (bitmap_color != 0)
 			{
                 for(i = 0; i < (1<<(zoom-1)); i++){
@@ -182,7 +183,7 @@ void fb_backspace()
 		// TODO play sound
 		return;
 	}
-	
+
 	move_left(&cursor_x, &cursor_y);
 	fb_delete();
 }
