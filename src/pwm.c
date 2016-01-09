@@ -145,31 +145,82 @@ void playSound(int soundNumber)
 		case 0:
 			soundToPlay	= audio_data;
 			break;
-		case 1:
-			soundToPlay	= audio_data1;
-			break;
-		case 2:
-			soundToPlay	= audio_data2;
-			break;
-		case 3:
-			soundToPlay	= audio_data3;
-			break;
-		case 4:
-			soundToPlay	= audio_data4;
-			break;
-		case 5:
-			soundToPlay	= audio_data5;
-			break;
-		case 6:
-			soundToPlay	= audio_data6;
-			break;
-		case 7:
+		case 1:	
 			soundToPlay	= audio_data7;
 			break;
-		case 8:
+		case 2:	
+			soundToPlay	= audio_data18bitmono;
+			break;
+		case 3:	
+			soundToPlay	= audio_data28bitmono;
+			break;
+		case 4:	
+			soundToPlay	= audio_data38bitmono;
+			break;
+		case 5:	
+			soundToPlay	= audio_data48bitmono;
+			break;
+		case 6:	
+			soundToPlay	= audio_data58bitmono;
+			break;
+		case 7:	
+			soundToPlay	= audio_data68bitmono;
+			break;
+		case 8:	
+			soundToPlay	= audio_data78bitmono;
+			break;
+		case 9:	
+			soundToPlay	= audio_data88bitmono;
+			break;
+		case 10:	
+			soundToPlay	= audio_data98bitmono;
+			break;
+		case 11:	
+			soundToPlay	= audio_data108bitmono;
+			break;
+		case 12:	
+			soundToPlay	= audio_data118bitmono;
+			break;
+		case 13:	
+			soundToPlay	= audio_data128bitmono;
+			break;
+		case 14:	
+			soundToPlay	= audio_data138bitmono;
+			break;
+		case 15:	
+			soundToPlay	= audio_data148bitmono;
+			break;
+		case 16:	
 			soundToPlay	= audio_data158bitmono;
 			break;
-	}
+		case 17:	
+			soundToPlay	= audio_data168bitmono;
+			break;
+		case 18:	
+			soundToPlay	= audio_data178bitmono;
+			break;
+		case 19:	
+			soundToPlay	= audio_data188bitmono;
+			break;
+		case 20:	
+			soundToPlay	= audio_data198bitmono;
+			break;
+		case 21:	
+			soundToPlay	= audio_data208bitmono;
+			break;
+		case 22:	
+			soundToPlay	= audio_data218bitmono;
+			break;
+		case 23:	
+			soundToPlay	= audio_data228bitmono;
+			break;
+		case 24:	
+			soundToPlay	= audio_data238bitmono;
+			break;
+		case 25:	
+			soundToPlay	= audio_data248bitmono;
+			break;
+    }
     
     while (1==1)
     {
