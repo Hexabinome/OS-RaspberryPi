@@ -35,3 +35,13 @@ int strcmp(const char* s1, const char* s2)
 	
 	return ret;
 }
+
+// http://www.opensource.apple.com/source/Libc/Libc-167/gen.subproj/i386.subproj/strlen.c
+unsigned int strlen(const char* str)
+{
+	register const char* s;
+	
+	for (s = str; *s; ++s) ;
+	
+	return (s - str);
+}

@@ -1,18 +1,14 @@
-#include "sched.h"
-#include "sched_irq.h"
+#include "kernel.h"
 #include "shell.h"
-#include "fb.h"
-#include "hw.h"
-
-extern struct pcb_s* current_process;
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 
 	char* cmd = "hello    my name  is         \"david wobrock\"\n";
 	int argc;
 	char** res = parse_command(cmd, &argc);
+	res++;
 	return;
 }
 

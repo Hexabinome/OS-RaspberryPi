@@ -23,11 +23,11 @@ static void clean_command(char * cmd)
 
 }
 
-static char** parse_command(char* cmd, int len, int* argc)
+char** parse_command(char* cmd, int* argc)
 {
 	// TODO test shell for command parsing
 	clean_command(cmd);
-	len--;
+	unsigned int len = strlen(cmd);
 	
 	char* space = strtok(cmd, ' ');
 	char** args = (char**) gmalloc(sizeof(char*));
@@ -88,10 +88,9 @@ int start_shell()
 	//char* cmd_line = "fork\n";
 	//char* cmd_line = "ps\n";
 	char* cmd_line = "echo Hello world\n";
-	int lenght = 17;
 	fb_print_text(cmd_line);
 	
-	char** args = parse_command(cmd_line, lenght, &argc);
+	char** args = parse_command(cmd_line, &argc);
 
 	command_t* command = find_command(args[0]);
 	if (command == NULL)
