@@ -1,5 +1,5 @@
 #include "kernel.h"
-#include "shell.h"
+#include "command_parser.h"
 
 void kmain()
 {

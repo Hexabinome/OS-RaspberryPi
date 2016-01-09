@@ -1,5 +1,6 @@
 #include "sched.h"
 #include "shell.h"
+#include "kernel.h"
 
 void kmain()
 {

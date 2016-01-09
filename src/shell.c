@@ -5,54 +5,11 @@
 #include "malloc.h"
 #include "shell_commands.h"
 #include "config.h"
-#include "hw.h"
-#include "fb_cursor.h"
+#include "command_parser.h"
 
 
 typedef void (command_t) (char**);
 
-
-static void clean_command(char * cmd)
-{
-	int i = 0;
-	while(cmd[i] != '\n')
-	{
-		i++;
-	}
-	cmd[i] = '\0';
-
-}
-
-char** parse_command(char* cmd, int* argc)
-{
-	// TODO test shell for command parsing
-	clean_command(cmd);
-	unsigned int len = strlen(cmd);
-	
-	char* space = strtok(cmd, ' ');
-	char** args = (char**) gmalloc(sizeof(char*));
-	args[0] = cmd;
-	
-	uint32_t counter = 1;
-	char* end_pos = &(cmd[len-1]);
-	char* next_space;
-	while (space <= end_pos)
-	{
-		next_space = strtok(cmd, ' ');
-		
-		if (space+1 != next_space) // the two spaces are not one after another, so a word has been found
-		{
-			args = (char**) grealloc(args, sizeof(char*) * (counter++));
-			args[counter-1] = space+1;
-		}
-		
-		space = next_space;
-	}
-	
-	*argc = counter;
-
-	return args;
-}
 
 static command_t* find_command(char* cmd_name)
 {
