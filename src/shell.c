@@ -8,6 +8,7 @@
 #include "hw.h"
 #include "fb_cursor.h"
 
+
 typedef void (command_t) (char**);
 
 
@@ -78,6 +79,8 @@ static command_t* find_command(char* cmd_name)
 
 int start_shell()
 {
+	int argc;
+	
 	//while (1)
 	fb_prompt();
 
@@ -87,9 +90,7 @@ int start_shell()
 	char* cmd_line = "echo Hello world\n";
 	int lenght = 17;
 	fb_print_text(cmd_line);
-
-	int argc;
-
+	
 	char** args = parse_command(cmd_line, lenght, &argc);
 
 	command_t* command = find_command(args[0]);
@@ -115,4 +116,3 @@ int start_shell()
 
 	return 0;
 }
-
