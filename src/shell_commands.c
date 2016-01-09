@@ -8,15 +8,15 @@
 
 extern struct pcb_s* current_process;
 
-void do_echo(char** args)
+void do_echo(int argc, char** argv)
 {
-	/*uint32_t i = 0;
-	char* word;
-	while ((word = args[i++]) != '\0')
+	int i;
+	
+	for (i = 0; i < argc; ++i)
 	{
-		fb_print_text(word);
-	}*/
-	fb_print_text(args[0]);
+		fb_print_text(argv[i]);
+		fb_print_char(' ');
+	}
 }
 
 
@@ -35,7 +35,7 @@ static void print_process(struct pcb_s* process)
 	fb_print_text("\n");
 }
 
-void do_ps(char** args)
+void do_ps(int argc, char** argv)
 {
 	struct pcb_s* process = current_process;
 	fb_print_text("pid:   ");
@@ -52,7 +52,7 @@ void do_ps(char** args)
 	print_process(process);
 }
 
-void do_fork(char ** args)
+void do_fork(int argc, char** argv)
 {
 	int pid = sys_fork();
 	if (pid == 0)
@@ -75,7 +75,7 @@ void do_fork(char ** args)
 
 }
 
-void do_music(char** args)
+void do_music(int argc, char** argv)
 {
 
 }

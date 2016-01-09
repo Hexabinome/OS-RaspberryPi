@@ -8,26 +8,26 @@
 #include "command_parser.h"
 
 
-typedef void (command_t) (char**);
+typedef void (command_t) (int, char**);
 
 
 static command_t* find_command(char* cmd_name)
 {
 	if (strcmp(cmd_name, "echo") == 0)
 	{
-		return do_echo;
+		return &do_echo;
 	}
 	else if (strcmp(cmd_name, "ps") == 0)
 	{
-		return do_ps;
+		return &do_ps;
 	}
 	else if (strcmp(cmd_name, "fork") == 0)
 	{
-		return do_fork;
+		return &do_fork;
 	}
 	else if (strcmp(cmd_name, "music") == 0)
 	{
-		return do_music;
+		return &do_music;
 	}
 
 	return NULL;
@@ -59,7 +59,7 @@ int start_shell()
 		int pid = sys_fork();
 		if (pid == 0)
 		{
-			command(args+1); // skip command name
+			command(argc-1, args+1); // skip command name
 			sys_exit(0);
 		}
 		else

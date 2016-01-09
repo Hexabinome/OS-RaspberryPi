@@ -96,12 +96,15 @@ void* grealloc(void* ptr, unsigned int size)
 	// If following block is free and together they are big enough
 	// (it is not possible that two free blocks follow each other,
 	// that's why we don't test if more than one block is free after the current one)
-	if (block->next->is_free && block->next->size + block->size >= size)
+	if (block->next != NULL && block->next->is_free && block->next->size + block->size >= size)
 	{
 		// Fusion those two blocks
-		block->size += block->next->size;
-		block->next->next->previous = block;
-		block->next = block->next->next;
+		block->size += block->next->size; // Size
+		if (block->next->next != NULL) // Set previous of block further away, if exists
+		{
+			block->next->next->previous = block;
+		}
+		block->next = block->next->next; // Set next block of current
 		
 		split_block(block, size);
 		
