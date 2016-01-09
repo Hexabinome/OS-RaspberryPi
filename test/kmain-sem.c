@@ -1,6 +1,6 @@
 #include "sem.h"
 #include "syscall.h"
-#include "sched_irq.h"
+#include "kernel.h"
 
 struct sem_s sem;
 
@@ -37,14 +37,14 @@ int process4()
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	
 	create_process(&process1);
 	create_process(&process2);
 	create_process(&process3);
 	create_process(&process4);
 	
-	irq_init();
+	start_kernel();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	

@@ -4,7 +4,7 @@
 #include "pwm.h"
 #include "asm_tools.h"
 #include "hw.h"
-#include "sched_irq.h"
+#include "kernel.h"
 
 extern struct pcb_s* current_process;
 int process1()
@@ -38,19 +38,14 @@ int process2()
 
 void kmain()
 {
-	audio_init();
-	sched_init();
+	init_kernel();
 
 	create_process(&process1);
 	create_process(&process2);
 	
-	irq_init();
+	start_kernel();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	
-	int i = 0;
-	while (1)
-	{
-		++i;
-	}
+	while (1) ;
 }

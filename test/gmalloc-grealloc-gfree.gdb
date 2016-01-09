@@ -3,13 +3,13 @@
 set verbose off
 set confirm off
 
-break kmain-gmalloc-grealloc-gfree.c:9
+break kmain-gmalloc-grealloc-gfree.c:8
 commands
   p momo
   continue
 end
 
-break kmain-gmalloc-grealloc-gfree.c:14
+break kmain-gmalloc-grealloc-gfree.c:13
 commands
   p momo
   p *momo
@@ -17,7 +17,7 @@ commands
   continue
 end
 
-break kmain-gmalloc-grealloc-gfree.c:21
+break kmain-gmalloc-grealloc-gfree.c:20
 commands
   p dada
   p jojo
@@ -30,7 +30,7 @@ commands
   continue
 end
 
-break kmain-gmalloc-grealloc-gfree.c:23
+break kmain-gmalloc-grealloc-gfree.c:22
 commands
   p jojo2
   p *(jojo2+4)

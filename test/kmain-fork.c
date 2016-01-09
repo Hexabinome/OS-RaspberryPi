@@ -1,6 +1,6 @@
 #include "syscall.h"
 #include "sched.h"
-#include "sched_irq.h"
+#include "kernel.h"
 
 int process()
 {
@@ -29,11 +29,11 @@ int process()
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	
 	create_process(&process);
 	
-	irq_init();
+	start_kernel();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	

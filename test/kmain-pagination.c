@@ -1,10 +1,10 @@
-#include "sched.h"
+#include "kernel.h"
 #include "vmem.h"
 #include "config.h"
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 
 	uint32_t res; 
 

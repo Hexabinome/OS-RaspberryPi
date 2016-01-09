@@ -20,18 +20,6 @@ unsigned int MMUTABLEBASE; /* Page table address */
 
 void sched_init()
 {
-	kheap_init();
-	
-#if FB
-	hw_init();
-	FramebufferInitialize();
-#endif
-	
-	// Init virtual memory
-#if VMEM
-	vmem_init();
-#endif
-
 	// Init process data structure
 	current_process = &kmain_process;
 	current_process->next = current_process;

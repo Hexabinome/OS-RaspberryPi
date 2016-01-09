@@ -1,6 +1,5 @@
+#include "kernel.h"
 #include "sched.h"
-#include "sched_irq.h"
-#include "kheap.h"
 #include "malloc.h"
 
 static int test_process()
@@ -26,11 +25,11 @@ static int test_process()
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	
 	create_process(&test_process);
 	
-	irq_init();
+	start_kernel();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	
