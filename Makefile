@@ -6,14 +6,14 @@ default:kernel_for_qemu
 
 all: kernel_for_qemu kernel_for_sdcard
 
-kernel_for_qemu: build/kernel.elf build/kernel.list
+kernel_for_qemu: build build/kernel.elf build/kernel.list
 
-kernel_for_sdcard: kernel_for_qemu build/kernel.img 
+kernel_for_sdcard: build kernel_for_qemu build/kernel.img 
 
 remake: clean all
 
 # options à passer au compilateur C
-CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -I libcsud_inc/
+CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
 
 # options à passer à la fois au compilateur C et à l'assembleur
 COMMON_FLAGS=-mcpu=arm1176jzf-s -mfloat-abi=soft -mfpu=fpv4-sp-d16

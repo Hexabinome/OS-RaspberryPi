@@ -1,29 +1,67 @@
-#include "usbd/usbd.h"
-#include "device/hid/keyboard.h"
 #include "sched.h"
 #include <stdint.h>
 #include "util.h"
 #include "hw.h"
+#include "keyboard.h"
+#include "syscall.h"
+
+static uint32_t temp()
+{
+	uint32_t i;
+	for (i = 0; i < 5000000; i++) ;
+	
+	return i;
+}
+
+void blink()
+{
+	led_off();
+	temp();
+	led_on();
+	temp();
+	led_off();
+	temp();
+	led_blink();
+	temp();
+	led_on();
+}
 
 static int keyboardProcess()
 {
+	temp();
+	led_on();
+	temp();
+	led_off();
+	temp();
+	led_blink();
+	temp();
+	
+	led_on();
+	UsbInitialise();
+	temp();
+	led_off();
+	temp();
+	led_blink();
+	temp();
+	
 	while (1)
 	{
-		UsbCheckForChange();
-		uint32_t a = KeyboardCount();
-		switch (a)
+		led_on();
+		KeyboardUpdate();
+		temp();
+		led_off();
+		temp();
+		
+		char c = KeyboardGetChar();
+		if (c == 'a')
 		{
-			case 0:
-				break;
-			case 1:
-				log_str("1\n");
-				break;
-			case 2:
-				log_str("2\n");
-				break;
-			default:
-				PANIC();
+			c++;
+			//led_on();
 		}
+		/*else
+		{
+			led_off();
+		}*/
 	}
 	
 	return 0;
@@ -31,14 +69,17 @@ static int keyboardProcess()
 
 void kmain()
 {
+	hw_init();
 	sched_init();
 	
-	UsbInitialise();
 	create_process(&keyboardProcess);
 		
 	sched_start();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	
-	while (1) ;
+	while (1)
+	{
+		sys_yield();
+	}
 }

@@ -307,10 +307,6 @@ void __attribute__((naked)) irq_handler()
 	set_next_tick_default();
     ENABLE_TIMER_IRQ();
 
-	// Reactivate interruptions (I bit to 0)
-	ENABLE_IRQ();
-
-
 	// Reload registers, put return address (lr_irq) into pc to get back to interrupted code, and load spsr => change back CPU mode
 	__asm("ldmfd sp!, {r0-r12, pc}^");
 }
