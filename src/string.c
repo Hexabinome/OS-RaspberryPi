@@ -18,6 +18,7 @@ char* strtok(char* str, const char delim)
 	return current;
 }
 
+// http://www.jbox.dk/sanos/source/lib/string.c.html
 int strcmp(const char* s1, const char* s2)
 {
 	int ret = 0;

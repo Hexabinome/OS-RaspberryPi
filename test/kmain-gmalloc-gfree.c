@@ -2,13 +2,14 @@
 #include "malloc.h"
 #include "syscall.h"
 #include "sched_irq.h"
+#include "kheap.h"
 
 static int process1()
 {
 
     int* t1 = (int*)gmalloc(sizeof(int));
     int* t2 = (int*)gmalloc(sizeof(int));
-    int diff = ((uint32_t) t2 - (uint32_t) t1) == (HEAP_BLOCK_SIZE + sizeof(int));
+    int diff = (((uint32_t) t2 - (uint32_t) t1) == (HEAP_BLOCK_SIZE + sizeof(int)));
     gfree(t1);
     gfree(t2);
     //diff should be HEAP_BLOCK_SIZE+sizeof(int)
@@ -46,4 +47,6 @@ void kmain()
     create_process(&process1);
     irq_init();
     sys_yield();
+    
+    while (1) ;
 }

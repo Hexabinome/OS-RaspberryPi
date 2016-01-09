@@ -27,7 +27,7 @@ commands
   p/x aa
   continue
 end
-break kmain-gmalloc-gfree.c:36
+break kmain-gmalloc-gfree.c:37
 commands
   p/x start_heap
   p/x current_process->heap
@@ -43,7 +43,7 @@ end
 define assert_results
   set $ok = 1
   set $ok *= ($1 == vmem_init+4)
-  set $ok *= $2
+  set $ok *= ($2 == 0)
 
   set $ok *= ($3 == $4)
 

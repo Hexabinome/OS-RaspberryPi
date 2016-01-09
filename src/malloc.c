@@ -44,9 +44,20 @@ static void split_block(struct heap_block* block, unsigned int size)
 	block->next = new_second_block;
 }
 
+static void occupy_block_and_split_if_necessary(struct heap_block* block, unsigned int size)
+{
+	if (block->size > size)
+	{
+		split_block(block, size);
+	}
+
+	block->is_free = FALSE;
+}
+
 void* gmalloc(unsigned int size)
 {
 	struct heap_block* new_block;
+	
 	// Find first free block, which is big enough
 	new_block = find_free_block(size);
 	if (new_block == NULL) // no free block found
@@ -54,13 +65,7 @@ void* gmalloc(unsigned int size)
 		return NULL;
 	}
 	
-	// The found block is too big, split it 
-	if (new_block->size > size)
-	{
-		split_block(new_block, size);
-	}
-
-	new_block->is_free = FALSE;
+	occupy_block_and_split_if_necessary(new_block, size);
 
 	// Meta data of block is stored at first position. block* + 1 => the first available address for the user
 	return (new_block+1);
@@ -98,6 +103,8 @@ void* grealloc(void* ptr, unsigned int size)
 		block->next->next->previous = block;
 		block->next = block->next->next;
 		
+		split_block(block, size);
+		
 		return ptr;
 	}
 	else
@@ -108,12 +115,8 @@ void* grealloc(void* ptr, unsigned int size)
 			return NULL; // failed to find block
 		}
 		
-		// The found block is too big, split it 
-		if (free_block->size > size)
-		{
-			split_block(free_block, size);
-		}
-		free_block->is_free = FALSE;
+		// The found block is too big, split it
+		occupy_block_and_split_if_necessary(free_block, size);
 		
 		// Copy content of old block to new one
 		uint32_t i;

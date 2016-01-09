@@ -6,6 +6,8 @@
 #include "vmem.h"
 #include "schedulers.h"
 #include "sched_svc.h"
+#include "fb.h"
+#include "hw.h"
 
 struct pcb_s* current_process;
 static struct pcb_s kmain_process;
@@ -18,6 +20,13 @@ unsigned int MMUTABLEBASE; /* Page table address */
 
 void sched_init()
 {
+	kheap_init();
+	
+#if FB
+	hw_init();
+	FramebufferInitialize();
+#endif
+	
 	// Init virtual memory
 #if VMEM
 	vmem_init();

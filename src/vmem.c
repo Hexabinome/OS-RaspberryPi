@@ -134,31 +134,29 @@ uint32_t** init_translation_table(void)
         *second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
     }
     
-    // Map from 0x2c100000 to 0x2c1e0ffd(verify) as 0x1c100000 to 0x2c1e0ffd (for framebuffer)
-    
-    // Fujitsu (0x1c006000) 0x2c006000 -> 0x2c424afd (phy addr : 469786624 => 0x1c006000)
-    // 899*4800 + 1599*3 = 0x41eafd
-    
-    // Map addresses for framebuffer
-    uint32_t fb_max_addr = fb_address + ((fb_y * pitch) + (fb_x * 3)); // formula from fb.c:put_pixel_RGB24
-    for(i = (fb_address >> 20); i <= (fb_max_addr >> 20); i++)
-	{
-		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
-		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
+    if (fb_address != 0) // if FrameInitialize has been called
+    {    
+		// Map addresses for framebuffer
+		uint32_t fb_max_addr = fb_address + ((fb_y * pitch) + (fb_x * 3)); // formula from fb.c:put_pixel_RGB24
+		for(i = (fb_address >> 20); i <= (fb_max_addr >> 20); i++)
+		{
+			first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
+			(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
+		}
+		// Fill second level tables
+		for(log_addr = fb_address; log_addr <= fb_max_addr; log_addr += PAGE_SIZE)
+		{
+			first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+			first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
+
+			first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+			second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+			second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
+			*second_level_descriptor_address = ((log_addr - 0x10000000) & 0xFFFFF000) | device_flags;
+		}
 	}
-	// Fill second level tables
-	for(log_addr = fb_address; log_addr <= fb_max_addr; log_addr += PAGE_SIZE)
-    {
-        first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
-		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
-
-		first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
-		second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
-
-		second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
-
-        *second_level_descriptor_address = ((log_addr - 0x10000000) & 0xFFFFF000) | device_flags;
-    }
 
 	return page_table;
 }

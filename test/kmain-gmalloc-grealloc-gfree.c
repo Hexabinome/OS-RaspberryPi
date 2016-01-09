@@ -3,18 +3,8 @@
 #include "kheap.h"
 #include "malloc.h"
 
-static void init()
+static int test_process()
 {
-	kheap_init();
-	sched_init();
-}
-
-void kmain()
-{
-	init();
-	
-	__asm("cps 0x10"); // CPU to USER mode
-	
 	int* momo = gmalloc(sizeof(int) * 5);
 	momo[0] = 45;
 	momo[4] = 33;
@@ -30,7 +20,19 @@ void kmain()
 	
 	int* jojo2 = grealloc(jojo, sizeof(int) * 50);
 	
-	while (1) ;
-	
 	dada++; jojo2++;
+	return 0;
+}
+
+void kmain()
+{
+	sched_init();
+	
+	create_process(&test_process);
+	
+	irq_init();
+	
+	__asm("cps 0x10"); // CPU to USER mode
+	
+	while (1) ;
 }

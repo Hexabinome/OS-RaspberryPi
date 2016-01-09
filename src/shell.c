@@ -22,18 +22,33 @@ static void clean_command(char * cmd)
 
 }
 
-static char** parse_command(char* cmd, int* argc)
+static char** parse_command(char* cmd, int len, int* argc)
 {
-	// TODO parse each argument into a different pointer. not all args in args[1]
+	// TODO test shell for command parsing
 	clean_command(cmd);
+	len--;
+	
 	char* space = strtok(cmd, ' ');
-	space++;
-
-	char** args = (char**) gmalloc(sizeof(char*) * 2);
+	char** args = (char**) gmalloc(sizeof(char*));
 	args[0] = cmd;
-	args[1] = space;
-
-	*argc = 2;
+	
+	uint32_t counter = 1;
+	char* end_pos = &(cmd[len-1]);
+	char* next_space;
+	while (space <= end_pos)
+	{
+		next_space = strtok(cmd, ' ');
+		
+		if (space+1 != next_space) // the two spaces are not one after another, so a word has been found
+		{
+			args = (char**) grealloc(args, sizeof(char*) * (counter++));
+			args[counter-1] = space+1;
+		}
+		
+		space = next_space;
+	}
+	
+	*argc = counter;
 
 	return args;
 }
@@ -70,11 +85,12 @@ int start_shell()
 	//char* cmd_line = "fork\n";
 	//char* cmd_line = "ps\n";
 	char* cmd_line = "echo Hello world\n";
+	int lenght = 17;
 	fb_print_text(cmd_line);
 
 	int argc;
 
-	char** args = parse_command(cmd_line, &argc);
+	char** args = parse_command(cmd_line, lenght, &argc);
 
 	command_t* command = find_command(args[0]);
 	if (command == NULL)
