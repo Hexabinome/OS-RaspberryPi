@@ -6,6 +6,7 @@
 #include "fb.h"
 #include "vmem.h"
 #include "sched.h"
+#include "keyboard.h"
 
 #include "sched_irq.h"
 
@@ -14,6 +15,7 @@ void init_kernel()
 	kheap_init();
 	hw_init();
 	audio_init();
+	UsbInitialise();
 	
 #if FB
 	FramebufferInitialize();

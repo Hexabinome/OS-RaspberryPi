@@ -16,10 +16,10 @@ INCDIR=include/
 SRCDIR=src/
 
 # options à passer au compilateur C
-CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -I $(INCDIR)
+CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -I $(INCDIR) -fshort-wchar
 
 # options à passer à la fois au compilateur C et à l'assembleur
-COMMON_FLAGS=-mcpu=arm1176jzf-s
+COMMON_FLAGS=-mcpu=arm1176jzf-s -mfloat-abi=soft -mfpu=fpv4-sp-d16
 
 # Object files (excluding kmain)
 TUNEOBJ=tune.o tune1.o tune2.o tune3.o tune4.o tune5.o tune6.o
@@ -76,7 +76,7 @@ build/%.o: $(SRCDIR)/%.s | build
 
 # édition de liens
 build/kernel.elf: $(OBJECTS) build/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T $(SRCDIR)/sysif.ld -Map build/mapfile.map
+	arm-none-eabi-ld $^ -o $@ -T $(SRCDIR)/sysif.ld -Map build/mapfile.map -L lib/ -l csud
 
 # conversion de l'image pour transfert sur carte SD
 build/kernel.img: build/kernel.elf

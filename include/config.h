@@ -6,7 +6,7 @@
 #define FALSE 0
 
 #define SERIAL_PRINT 1
-#define RPI 0
+#define RPI 1
 #define DEBUG 1
 #define VMEM 1
 #define FB 1

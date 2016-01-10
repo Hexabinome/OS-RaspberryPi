@@ -16,6 +16,7 @@ unsigned int nb_process;
 
 static uint32_t pid_counter = 0;
 
+
 unsigned int MMUTABLEBASE; /* Page table address */
 
 void sched_init()
@@ -169,8 +170,7 @@ void do_sys_exit(uint32_t* sp) // Points on saved r0 in stack
 {
 	current_process->status = TERMINATED;
 	current_process->return_code = *(sp+1);
-
+	
 	elect();
-
 	context_save_to_pcb_svc(sp);
 }
