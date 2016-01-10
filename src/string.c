@@ -1,7 +1,8 @@
 #include "string.h"
 #include "config.h"
+#include <stdint.h>
 
-char* strtok(char* str, const char delim)
+static char* strfnd_replace(char* str, const char delim, uint8_t replace)
 {
 	if (str == NULL)
 	{
@@ -14,8 +15,22 @@ char* strtok(char* str, const char delim)
 		current++;
 	}
 	
-	*current = '\0';
+	if (replace)
+	{
+		*current = '\0';
+	}
+
 	return current;
+}
+
+char* strtok(char* str, const char delim)
+{
+	return strfnd_replace(str, delim, TRUE);
+}
+
+char* strfnd(char* str, const char delim)
+{
+	return strfnd_replace(str, delim, FALSE);
 }
 
 // http://www.jbox.dk/sanos/source/lib/string.c.html

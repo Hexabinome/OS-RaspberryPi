@@ -3,7 +3,7 @@
 set verbose off
 set confirm off
 
-break kmain-command-parser.c:11
+break kmain-command-parser.c:12
 commands
   p argc
   
@@ -41,6 +41,46 @@ commands
   p *((char*) (*(res+4))+11)
   p *((char*) (*(res+4))+12)
   
+  p *((char*) (*(res+5)))
+  p *((char*) (*(res+5))+1)
+  
+  continue
+end
+
+break kmain-command-parser.c:15
+commands
+  p argc
+
+  p *((char*) (*res))
+  p *(((char*) (*res)+1))
+  p *(((char*) (*res)+2))
+  p *(((char*) (*res)+3))
+
+  continue
+end
+
+break kmain-command-parser.c:18
+commands
+  p argc
+
+  p *((char*) (*res))
+  p *(((char*) (*res)+1))
+  p *(((char*) (*res)+2))
+  p *(((char*) (*res)+3))
+
+  p *((char*) (*(res+1)))
+  p *((char*) (*(res+1))+1)
+  p *((char*) (*(res+1))+2)
+  p *((char*) (*(res+1))+3)
+  p *((char*) (*(res+1))+4)
+  p *((char*) (*(res+1))+5)
+  p *((char*) (*(res+1))+6)
+  p *((char*) (*(res+1))+7)
+  p *((char*) (*(res+1))+8)
+  p *((char*) (*(res+1))+9)
+  p *((char*) (*(res+1))+10)
+  p *((char*) (*(res+1))+11)
+  
   assert_results
 end
 
@@ -48,7 +88,7 @@ define assert_results
   # integer used as boolean
   set $ok = 1 
   # test results
-  set $ok *= ($1 == 5)
+  set $ok *= ($1 == 6)
   
   set $ok *= ($2 == 'h')
   set $ok *= ($3 == 'e')
@@ -80,6 +120,33 @@ define assert_results
   set $ok *= ($25 == 'o')
   set $ok *= ($26 == 'c')
   set $ok *= ($27 == 'k')
+  
+  set $ok *= ($28 == 'y')
+  set $ok *= ($29 == 'o')
+  
+  set $ok *= ($30 == 1)
+  set $ok *= ($31 == 'e')
+  set $ok *= ($32 == 'c')
+  set $ok *= ($33 == 'h')
+  set $ok *= ($34 == 'o')
+  
+  set $ok *= ($35 == 2)
+  set $ok *= ($36 == 'e')
+  set $ok *= ($37 == 'c')
+  set $ok *= ($38 == 'h')
+  set $ok *= ($39 == 'o')
+  set $ok *= ($40 == 'H')
+  set $ok *= ($41 == 'e')
+  set $ok *= ($42 == 'l')
+  set $ok *= ($43 == 'l')
+  set $ok *= ($44 == 'o')
+  set $ok *= ($45 == ' ')
+  set $ok *= ($46 == 'w')
+  set $ok *= ($47 == 'o')
+  set $ok *= ($48 == 'r')
+  set $ok *= ($49 == 'l')
+  set $ok *= ($50 == 'd')
+  set $ok *= ($51 == '!')
   
   if $ok
     printf "test OK\n"
