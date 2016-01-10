@@ -5,6 +5,11 @@
 #include "keyboard.h"
 #include "syscall.h"
 
+void LogPrint(char* message, uint32_t len)
+{
+	log_str(message);
+}
+
 static uint32_t temp()
 {
 	uint32_t i;
