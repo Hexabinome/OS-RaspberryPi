@@ -1,6 +1,5 @@
 #include "fb.h"
 #include "config.h"
-#include "kheap.h"
 #include "fb_cursor.h"
 
 /*
@@ -122,8 +121,7 @@ int FramebufferInitialize() {
 
   uint32_t retval=0;
   
-  //volatile unsigned int mb[100] __attribute__ ((aligned(16)));
-  volatile unsigned int* mb = (unsigned int*) kAlloc_aligned(sizeof(unsigned int) * 100, 16);
+  volatile unsigned int mb[100] __attribute__ ((aligned(16)));
 
   depth = 24;
 
@@ -246,6 +244,7 @@ int FramebufferInitialize() {
 
 void fb_display_info()
 {
+	fb_print_text("Framebuffer info :\n");
 	fb_print_text("\nPhysical address : ");
 	fb_print_int(fb_phy_address);
 

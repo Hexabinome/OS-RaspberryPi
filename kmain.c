@@ -5,24 +5,32 @@
 #include "fb_cursor.h"
 #include "hw.h"
 #include "keyboard.h"
+#include "malloc.h"
+#include "sem.h"
 
-void LogPrint(char* message, uint32_t length)
-{
-	// Careful, this code is executed too early for us the first time
-	// fb_address is still equal to 0, which means we erase the interruption vectors
-	
-  /*fb_print_text(">> ");
-	fb_print_text(message);
-	fb_print_char('\n');*/
-}
+struct sem_s cmd_buffer_sem;
+struct sem_s shell_sem;
+char* cmd_buffer;
+uint32_t cmd_buffer_idx;
 
-void notice()
-{
-	fb_print_text("NOTICE");
-}
-
+#include "vmem.h"
+#include "sched.h"
+#include "process.h"
+extern struct pcb_s* current_process;
 static int keyboard()
 {
+	cmd_buffer = (char*) gmalloc(sizeof(char) * 100);
+	cmd_buffer_idx = 0;
+	
+	fb_print_int((uint32_t) &cmd_buffer);
+	fb_print_char('\n');
+	fb_print_int((uint32_t) &current_process);
+	fb_print_char('\n');
+	fb_print_int((uint32_t) vmem_translate((uint32_t) &cmd_buffer, current_process));
+	fb_print_char('\n');
+	
+	sem_down(&cmd_buffer_sem); // begin when shell says okay
+	
 	char c;
 	while (1)
 	{
@@ -31,6 +39,7 @@ static int keyboard()
 		
 		if (c != NULL)
 		{
+			// Display
 			if ((uint8_t) c == FB_BACKSPACE)
 				fb_backspace();
 			else if ((uint8_t) c == FB_DELETE)
@@ -41,6 +50,18 @@ static int keyboard()
 				fb_move_cursor_right();
 			else
 				fb_print_char(c);
+
+
+			cmd_buffer[cmd_buffer_idx++] = c;
+			cmd_buffer[cmd_buffer_idx] = '\0';
+			if (c == '\n')
+			{
+				sem_up(&shell_sem); // unblock shell
+				sem_down(&cmd_buffer_sem); // block command line
+				fb_print_text("CONTINUE CMD\n");
+				cmd_buffer_idx = 0;
+				cmd_buffer[cmd_buffer_idx] = '\0';
+			}
 		}
 	}
 	
@@ -50,15 +71,15 @@ static int keyboard()
 void kmain()
 {
 	init_kernel();
-	fb_print_text("Kernel init : OK\n");
 	
 	create_process(&keyboard);
-	//create_process(&start_shell);
+	create_process(&start_shell);
 	
-	//start_kernel();
-	//fb_print_text("Kernel started\n");
+	sem_init(&cmd_buffer_sem, 0);
+	sem_init(&shell_sem, 0);
 	
-	__asm("cps 0x10"); // CPU to USER mode
+	start_kernel();
+	
 
 	while (1)
 	{

@@ -33,9 +33,10 @@ char** parse_command(char* cmd, int* argc)
 {
 	clean_command(cmd);
 	unsigned int len = strlen(cmd);
-	char delim;
 	
+	char delim;
 	char* delim_addr = find_next_delim_and_replace(cmd, &delim);
+	
 	char** args = (char**) gmalloc(sizeof(char*));
 	args[0] = cmd;
 	

@@ -32,9 +32,15 @@ void init_kernel()
 	fb_set_zoom(2);
 	fb_display_info();
 #endif
+
+
+	fb_print_text("Kernel initialized\n");
 }
 
 void start_kernel()
 {
 	irq_init();
+	__asm("cps 0x10"); // CPU to USER mode
+	
+	fb_print_text("Kernel started\n");
 }
