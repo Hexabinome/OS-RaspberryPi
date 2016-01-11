@@ -43,7 +43,6 @@ void do_ps(int argc, char** argv)
 	fb_print_text("priority:   ");
 	fb_print_text("status:   ");
 	fb_print_text("\n");
-
 	while(process != current_process->previous)
 	{
 		print_process(process);
