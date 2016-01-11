@@ -40,7 +40,6 @@ void init_kernel()
 void start_kernel()
 {
 	irq_init();
-	__asm("cps 0x10"); // CPU to USER mode
 	
 	fb_print_text("Kernel started\n");
 }

@@ -1,39 +1,59 @@
 #include "keyboard.h"
 #include "config.h"
+#include "sem.h"
+#include "fb_cursor.h"
 
-const char key_normal[104] = 
-{
-	0x0, 0x0, 0x0, 0x0, 'a', 'b', 'c', 'd',
-	'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-	'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
-	'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
-	'3', '4', '5', '6', '7', '8', '9', '0',
-	'\n', 0x0, '\b', '\t', ' ', '-', '=', '[',
-	']', '\\', '#', ';', '\'', '`', ',', '.',
-	'/', 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0, 19, 0x0, 0x0, 17,
-	18, 0x0, 0x0, 0x0, '/', '*', '-', '+',
-	'\n', '1', '2', '3', '4', '5', '6', '7',
-	'8', '9', '0', '.', '\\', 0x0, 0x0, '='
-};
+extern struct sem_s cmd_buffer_sem;
+extern struct sem_s shell_sem;
+extern char* cmd_buffer;
+extern uint32_t cmd_buffer_idx;
 
-const char key_shift[104] =
-{
-	0x0, 0x0, 0x0, 0x0, 'A', 'B', 'C', 'D',
-	'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
-	'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
-	'U', 'V', 'W', 'X', 'Y', 'Z', '!', '"',
-	0x0, '$', '%', '^', '&', '*', '(', ')',
-	'\n', 0x0, '\b', '\t', ' ', '_', '+', '{',
-	'}', '|', '~', ':', '@', 0x0, '<', '>',
-	'?', 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0, '/', '*', '-', '+',
-	'\n', '1', '2', '3', '4', '5', '6', '7',
-	'8', '9', '0', '.', '|', 0x0, 0x0, '='
-};
+static void KeyboardUpdate();
+static char KeyboardGetChar();
+
+
+int keyboard_loop()
+{	
+	sem_down(&cmd_buffer_sem); // begin when shell says okay
+	
+	char c;
+	while (1)
+	{
+		KeyboardUpdate();
+		c = KeyboardGetChar();
+		
+		if (c != NULL)
+		{
+			// Display
+			if ((uint8_t) c == FB_BACKSPACE)
+				fb_backspace();
+			else if ((uint8_t) c == FB_DELETE)
+				fb_delete();
+			else if ((uint8_t) c == FB_ARROW_LEFT)
+				fb_move_cursor_left();	
+			else if ((uint8_t) c == FB_ARROW_RIGHT)
+				fb_move_cursor_right();
+			else
+				fb_print_char(c);
+
+
+			cmd_buffer[cmd_buffer_idx++] = c;
+			cmd_buffer[cmd_buffer_idx] = '\0';
+			if (c == '\n')
+			{
+				sem_up(&shell_sem); // unblock shell
+				sem_down(&cmd_buffer_sem); // block command line
+				cmd_buffer_idx = 0;
+				cmd_buffer[cmd_buffer_idx] = '\0';
+			}
+		}
+	}
+	
+	return 0;
+}
+
+const char key_normal[104];
+const char key_shift[104];
 
 uint32_t* kb_address = NULL;
 
@@ -120,3 +140,37 @@ void LogPrint(char* message, uint32_t length)
 	fb_print_text(message);
 	fb_print_char('\n');*/
 }
+
+const char key_normal[104] = 
+{
+	0x0, 0x0, 0x0, 0x0, 'a', 'b', 'c', 'd',
+	'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+	'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+	'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
+	'3', '4', '5', '6', '7', '8', '9', '0',
+	'\n', 0x0, '\b', '\t', ' ', '-', '=', '[',
+	']', '\\', '#', ';', '\'', '`', ',', '.',
+	'/', 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 19, 0x0, 0x0, 17,
+	18, 0x0, 0x0, 0x0, '/', '*', '-', '+',
+	'\n', '1', '2', '3', '4', '5', '6', '7',
+	'8', '9', '0', '.', '\\', 0x0, 0x0, '='
+};
+
+const char key_shift[104] =
+{
+	0x0, 0x0, 0x0, 0x0, 'A', 'B', 'C', 'D',
+	'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+	'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+	'U', 'V', 'W', 'X', 'Y', 'Z', '!', '"',
+	0x0, '$', '%', '^', '&', '*', '(', ')',
+	'\n', 0x0, '\b', '\t', ' ', '_', '+', '{',
+	'}', '|', '~', ':', '@', 0x0, '<', '>',
+	'?', 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+	0x0, 0x0, 0x0, 0x0, '/', '*', '-', '+',
+	'\n', '1', '2', '3', '4', '5', '6', '7',
+	'8', '9', '0', '.', '|', 0x0, 0x0, '='
+};

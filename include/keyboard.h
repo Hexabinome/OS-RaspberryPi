@@ -8,8 +8,7 @@
 #define FB_ARROW_LEFT 18
 #define FB_ARROW_RIGHT 17
 
-void KeyboardUpdate();
-char KeyboardGetChar();
+int keyboard_loop();
 
 // implemented in csud static linked lib
 void UsbInitialise();

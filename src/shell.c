@@ -38,11 +38,6 @@ extern struct sem_s cmd_buffer_sem;
 extern struct sem_s shell_sem;
 extern char* cmd_buffer;
 
-#include "hw.h"
-#include "vmem.h"
-#include "sched.h"
-#include "process.h"
-extern struct pcb_s* current_process;
 int start_shell()
 {
 	int argc;
@@ -54,17 +49,11 @@ int start_shell()
 		
 		sem_down(&shell_sem); // wait until shell is ready
 		
-		fb_print_int((uint32_t) &cmd_buffer);
-		fb_print_char('\n');
-		fb_print_int((uint32_t) &current_process);
-		fb_print_char('\n');
-		fb_print_int((uint32_t) vmem_translate((uint32_t) &cmd_buffer, current_process));
-		fb_print_char('\n');
 		fb_print_text(cmd_buffer);
-		
+		fb_print_text("PARSE COMMAND\n");
 		char** args = parse_command(cmd_buffer, &argc);
 		fb_print_text("GO3 SHELL\n");
-		fb_print_text(cmd_buffer); // TO DELETE
+		fb_print_text(args[0]); // TO DELETE
 
 		command_t* command = find_command(args[0]);
 		if (command == NULL)
