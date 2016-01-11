@@ -56,22 +56,22 @@ void do_fork(int argc, char** argv)
 {
 	int pid = sys_fork();
 	if (pid == 0)
-		{
-			fb_print_text("child talking, my pid is ");
-			fb_print_int(current_process->pid);
-			fb_print_text(" and my ppid is ");
-			fb_print_int(current_process->ppid);
-			fb_print_char('\n');
-			sys_exit(0);
-		}
-		else
-		{
-			int cmd_status;
-			fb_print_text("parent talking, my pid is ");
-			fb_print_int(current_process->pid);
-			fb_print_char('\n');
-			sys_waitpid(pid, &cmd_status);
-		}
+	{
+		fb_print_text("child talking, my pid is ");
+		fb_print_int(current_process->pid);
+		fb_print_text(" and my ppid is ");
+		fb_print_int(current_process->ppid);
+		fb_print_char('\n');
+		sys_exit(0);
+	}
+	else
+	{
+		int cmd_status;
+		fb_print_text("parent talking, my pid is ");
+		fb_print_int(current_process->pid);
+		fb_print_char('\n');
+		sys_waitpid(pid, &cmd_status);
+	}
 
 }
 

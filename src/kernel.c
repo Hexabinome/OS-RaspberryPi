@@ -7,6 +7,7 @@
 #include "vmem.h"
 #include "sched.h"
 #include "keyboard.h"
+#include "fb_cursor.h"
 
 #include "sched_irq.h"
 
@@ -26,6 +27,11 @@ void init_kernel()
 #endif
 
 	sched_init();
+
+#if FB
+	fb_set_zoom(2);
+	fb_display_info();
+#endif
 }
 
 void start_kernel()

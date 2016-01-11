@@ -53,6 +53,7 @@ void paint_all_black();
  */
 
 int FramebufferInitialize();
+void fb_display_info();
 
 void draw();
 
