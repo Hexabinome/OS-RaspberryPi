@@ -43,7 +43,6 @@ void do_ps(int argc, char** argv)
 	fb_print_text("priority:   ");
 	fb_print_text("status:   ");
 	fb_print_text("\n");
-
 	while(process != current_process->previous)
 	{
 		print_process(process);
@@ -75,7 +74,14 @@ void do_fork(int argc, char** argv)
 
 }
 
+//TODO
 void do_music(int argc, char** argv)
 {
 
+}
+
+
+void do_clear(int argc, char** argv)
+{
+	fb_clear();
 }

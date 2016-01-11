@@ -30,6 +30,10 @@ static command_t* find_command(char* cmd_name)
 	{
 		return &do_music;
 	}
+	else if (strcmp(cmd_name, "clear") == 0)
+	{
+		return &do_clear;
+	}
 
 	return NULL;
 }
