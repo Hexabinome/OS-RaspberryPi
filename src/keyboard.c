@@ -66,21 +66,50 @@ static void cmd_right()
 		cmd_buffer_idx = cmd_buffer_size;
 }
 
+
+static void highlight_cursor()
+{
+	fb_print_curr_char('\0');
+	// TODO add negative of current char
+}
+
+static void unhighlight_cursor()
+{
+	fb_print_curr_char(' ');
+}
+
+static void display_normal_cursor()
+{
+	char c = cmd_buffer[cmd_buffer_idx];
+	if (c == '\0')
+		c = ' ';
+
+	fb_print_curr_char(c);
+}
+
 int keyboard_loop()
 {	
 	cmd_buffer_idx = 0;
 	cmd_buffer_size = 0;
-	
+
 	sem_down(&cmd_buffer_sem); // begin when shell says okay
 	
 	char c;
+	uint8_t i = 0;
 	while (1)
 	{
+		if (((i++) & 1) == 0)
+			highlight_cursor();
+		else
+			unhighlight_cursor();
+			
 		KeyboardUpdate();
 		c = KeyboardGetChar();
 		
 		if (c != NULL)
 		{
+			display_normal_cursor();
+			
 			// Display
 			if ((uint8_t) c == FB_BACKSPACE)
 			{
@@ -110,7 +139,6 @@ int keyboard_loop()
 				{
 					cmd_buffer[cmd_buffer_idx++] = c;
 					cmd_buffer[cmd_buffer_idx] = '\0';
-					cmd_buffer_size++;
 				}
 				else
 				{
@@ -120,8 +148,10 @@ int keyboard_loop()
 						cmd_buffer[i+1] = cmd_buffer[i];
 					}
 					cmd_buffer[cmd_buffer_idx++] = c;
-					cmd_buffer_size++;
 				}
+				
+				cmd_buffer_size++;
+				i = 0;
 			}
 
 			// Send command
