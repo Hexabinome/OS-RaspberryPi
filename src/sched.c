@@ -172,5 +172,6 @@ void do_sys_exit(uint32_t* sp) // Points on saved r0 in stack
 	current_process->return_code = *(sp+1);
 	
 	elect();
+	
 	context_save_to_pcb_svc(sp);
 }

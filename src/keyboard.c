@@ -6,14 +6,71 @@
 extern struct sem_s cmd_buffer_sem;
 extern struct sem_s shell_sem;
 extern char* cmd_buffer;
-extern uint32_t cmd_buffer_idx;
+uint32_t cmd_buffer_idx;
+uint32_t cmd_buffer_size;
 
 static void KeyboardUpdate();
 static char KeyboardGetChar();
 
+static void cmd_backspace()
+{
+	if (cmd_buffer_idx > 0) // Copy everything to the right
+	{
+		uint32_t i;
+		for (i = cmd_buffer_size; i >= cmd_buffer_idx; --i)
+		{
+			cmd_buffer[i-1] = cmd_buffer[i];
+		}
+	}
+	
+	--cmd_buffer_idx;
+	if (cmd_buffer_idx < 0)
+		cmd_buffer_idx = 0;
+	
+	--cmd_buffer_size;
+	if (cmd_buffer_size < 0)
+		cmd_buffer_size = 0;
+}
+
+static void cmd_delete()
+{
+	if (cmd_buffer_idx < cmd_buffer_size)
+	{
+		uint32_t i;
+		for (i = cmd_buffer_size; i > cmd_buffer_idx; --i)
+		{
+			cmd_buffer[i-1] = cmd_buffer[i];
+		}
+	}
+	
+	--cmd_buffer_idx;
+	if (cmd_buffer_idx < 0)
+		cmd_buffer_idx = 0;
+	
+	--cmd_buffer_size;
+	if (cmd_buffer_size < 0)
+		cmd_buffer_size = 0;
+}
+
+static void cmd_left()
+{
+	--cmd_buffer_idx;
+	if (cmd_buffer_idx < 0)
+		cmd_buffer_idx = 0;
+}
+
+static void cmd_right()
+{
+	++cmd_buffer_idx;
+	if (cmd_buffer_idx > cmd_buffer_size)
+		cmd_buffer_idx = cmd_buffer_size;
+}
 
 int keyboard_loop()
 {	
+	cmd_buffer_idx = 0;
+	cmd_buffer_size = 0;
+	
 	sem_down(&cmd_buffer_sem); // begin when shell says okay
 	
 	char c;
@@ -26,25 +83,55 @@ int keyboard_loop()
 		{
 			// Display
 			if ((uint8_t) c == FB_BACKSPACE)
+			{
 				fb_backspace();
+				cmd_backspace();
+			}
 			else if ((uint8_t) c == FB_DELETE)
+			{
 				fb_delete();
+				cmd_delete();
+			}
 			else if ((uint8_t) c == FB_ARROW_LEFT)
-				fb_move_cursor_left();	
+			{
+				fb_move_cursor_left();
+				cmd_left();
+			}
 			else if ((uint8_t) c == FB_ARROW_RIGHT)
+			{
 				fb_move_cursor_right();
+				cmd_right();
+			}
 			else
+			{
 				fb_print_char(c);
+				// TODO : realloc size (but not possible because in kernel space)
+				if (cmd_buffer_idx == cmd_buffer_size) // write at the end
+				{
+					cmd_buffer[cmd_buffer_idx++] = c;
+					cmd_buffer[cmd_buffer_idx] = '\0';
+					cmd_buffer_size++;
+				}
+				else
+				{
+					uint32_t i;
+					for (i = cmd_buffer_size; i >= cmd_buffer_idx; --i)
+					{
+						cmd_buffer[i+1] = cmd_buffer[i];
+					}
+					cmd_buffer[cmd_buffer_idx++] = c;
+					cmd_buffer_size++;
+				}
+			}
 
-
-			cmd_buffer[cmd_buffer_idx++] = c;
-			cmd_buffer[cmd_buffer_idx] = '\0';
+			// Send command
 			if (c == '\n')
 			{
 				sem_up(&shell_sem); // unblock shell
 				sem_down(&cmd_buffer_sem); // block command line
 				cmd_buffer_idx = 0;
 				cmd_buffer[cmd_buffer_idx] = '\0';
+				cmd_buffer_size = 0;
 			}
 		}
 	}

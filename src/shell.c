@@ -49,11 +49,7 @@ int start_shell()
 		
 		sem_down(&shell_sem); // wait until shell is ready
 		
-		fb_print_text(cmd_buffer);
-		fb_print_text("PARSE COMMAND\n");
 		char** args = parse_command(cmd_buffer, &argc);
-		fb_print_text("GO3 SHELL\n");
-		fb_print_text(args[0]); // TO DELETE
 
 		command_t* command = find_command(args[0]);
 		if (command == NULL)
@@ -72,6 +68,7 @@ int start_shell()
 			{
 				int cmd_status;
 				sys_waitpid(pid, &cmd_status);
+				fb_print_char('\n');
 				// TODO fill shell variable of last return code: $?
 			}
 		}
