@@ -58,7 +58,9 @@ int start_shell()
 		}
 		else
 		{
+			fb_print_text("BEFORE FORK\n");
 			int pid = sys_fork();
+			fb_print_text("AFTER FORK\n");
 			if (pid == 0)
 			{
 				command(argc-1, args+1); // skip command name
