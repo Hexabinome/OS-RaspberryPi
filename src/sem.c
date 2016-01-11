@@ -3,8 +3,6 @@
 #include "syscall.h"
 #include "asm_tools.h"
 
-// TODO : operations must be atomic
-
 extern struct pcb_s* current_process;
 
 void sem_init(struct sem_s* sem, unsigned int val)
