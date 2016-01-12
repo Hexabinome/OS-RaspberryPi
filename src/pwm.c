@@ -134,14 +134,14 @@ void audio_init(void)
     pause(2);
 }
 
-
 void playSound(int soundNumber)
 {
 	int i=0;
     long status;
     char* soundToPlay;
     
-    switch(soundNumber){
+    switch(soundNumber)
+    {
 		case 0:
 			soundToPlay	= audio_data;
 			break;
@@ -222,10 +222,8 @@ void playSound(int soundNumber)
 			break;
     }
     
-    while (1==1)
-    {
-    while (i < 125000)
-    {
+	while (i < 125000)
+	{
 		status =  *(pwm + BCM2835_PWM_STATUS);
 		if (!(status & BCM2835_FULL1))
 		{
@@ -234,15 +232,15 @@ void playSound(int soundNumber)
 			i++;
 		}
 		  
-		if ((status & ERRORMASK)) {
+		if ((status & ERRORMASK))
+		{
 			//                uart_print("error: ");
 			//                hexstring(status);
 			//                uart_print("\r\n");
 			*(pwm+BCM2835_PWM_STATUS) = ERRORMASK;
 		}
-    }
-    i=0;
-    }
+	}
+	i=0;
 }
 
 void audio_test()
