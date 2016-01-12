@@ -14,7 +14,7 @@ static uint8_t* frame_table; /* frame occupation table */
 
 static const uint32_t device_heap_start = (uint32_t) &__devices_start__;
 static const uint32_t device_heap_end = (uint32_t) &__devices_end__;
-static const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
+const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
 extern uint32_t __irq_stack_end__;
 
 static const uint8_t first_table_flags = 1; // 0b0000000001
@@ -32,6 +32,7 @@ extern uint32_t pitch, fb_x, fb_y;
 
 static void configure_mmu_C(uint32_t mmu_adr);
 static void start_mmu_C();
+//static void disable_mmu();
 
 static uint32_t** get_table_base(struct pcb_s* process)
 {
@@ -234,6 +235,20 @@ static void start_mmu_C()
 	// doc at http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0333h/I1031142.html
 	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
+
+/*static void disable_mmu()
+{
+	register unsigned int control;
+	__asm("mrc p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
+	//Clear bit 2 in the CP15 Control Register c1.
+	control = control & 0xFFFFFFFB; // disable cache
+	//http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0360e/BABEEGBE.html
+	INVALIDATE_TLB();
+	//Clear bit 0 in the CP15 Control Register c1.
+	control = control & 0xFFFFFFFE;
+	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
+	
+}*/
 
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 {
