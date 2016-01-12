@@ -53,11 +53,12 @@ int start_shell()
 		
 		sem_down(&shell_sem); // wait until shell is ready
 		
-		fb_print_text("BEFORE PARSE\n");
+		fb_print_text("Loading command... ");
 		char** args = parse_command(cmd_buffer, &argc);
-		fb_print_text("AFTER PARSE\n");
+		fb_print_text("Ok. ");
 		command_t* command = find_command(args[0]);
-		fb_print_text("AFTER FIND\n");
+		fb_print_text("Done.\n");
+		
 		if (command == NULL)
 		{
 			fb_print_text("Command not found\n");

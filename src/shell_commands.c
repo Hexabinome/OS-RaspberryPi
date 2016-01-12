@@ -79,23 +79,27 @@ void do_fork(int argc, char** argv)
 
 void do_music(int argc, char** argv)
 {
-	int sound_nb = str_to_int(argv[0]);
-	fb_print_text(argv[0]);
-	fb_print_char('\n');
-	fb_print_int(sound_nb);
-	fb_print_char('\n');
-	
-	if (sound_nb < SOUND_IDX_BEGIN || sound_nb > SOUND_IDX_END)
+	int sound_nb;
+	int i = 0;
+	while (i < argc)
 	{
-		fb_print_text("Invalid sound index. Select from ");
-		fb_print_int(SOUND_IDX_BEGIN);
-		fb_print_text(" to ");
-		fb_print_int(SOUND_IDX_END);
-		fb_print_char('\n');
-		return;
-	}
+		sound_nb = str_to_int(argv[i++]);
 	
-	playSound(sound_nb);
+		if (sound_nb < SOUND_IDX_BEGIN || sound_nb > SOUND_IDX_END)
+		{
+			fb_print_text("Invalid sound index. Select from ");
+			fb_print_int(SOUND_IDX_BEGIN);
+			fb_print_text(" to ");
+			fb_print_int(SOUND_IDX_END);
+			fb_print_char('\n');
+			return;
+		}
+		
+		fb_print_text("Playing ");
+		fb_print_int(sound_nb);
+		fb_print_text("...\n");
+		playSound(sound_nb);
+	}
 }
 
 
