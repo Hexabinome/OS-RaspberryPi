@@ -53,16 +53,18 @@ int start_shell()
 		
 		sem_down(&shell_sem); // wait until shell is ready
 		
+		fb_print_text("BEFORE PARSE\n");
 		char** args = parse_command(cmd_buffer, &argc);
-
+		fb_print_text("AFTER PARSE\n");
 		command_t* command = find_command(args[0]);
+		fb_print_text("AFTER FIND\n");
 		if (command == NULL)
 		{
 			fb_print_text("Command not found\n");
 		}
 		else
 		{
-			fb_print_text("BEFORE FORK\n");
+			/*fb_print_text("BEFORE FORK\n");
 			int pid = sys_fork();
 			fb_print_text("AFTER FORK\n");
 			if (pid == 0)
@@ -76,7 +78,9 @@ int start_shell()
 				sys_waitpid(pid, &cmd_status);
 				fb_print_char('\n');
 				// TODO fill shell variable of last return code: $?
-			}
+			}*/
+			command(argc-1, args+1);
+			fb_print_char('\n');
 		}
 	}
 
