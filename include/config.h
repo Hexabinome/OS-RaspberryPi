@@ -9,6 +9,6 @@
 #define RPI 0
 #define DEBUG 1
 #define VMEM 1
-#define FB 1
+#define FB 0
 
 #endif
