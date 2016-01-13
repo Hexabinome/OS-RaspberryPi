@@ -10,7 +10,7 @@
 #include "sched.h"
 
 unsigned int MMUTABLEBASE; /* Page table address */
-static uint8_t* frame_table; /* frame occupation table */
+uint8_t* frame_table; /* frame occupation table */
 
 static const uint32_t device_heap_start = (uint32_t) &__devices_start__;
 static const uint32_t device_heap_end = (uint32_t) &__devices_end__;
@@ -31,8 +31,6 @@ extern uint32_t fb_address;
 extern uint32_t pitch, fb_x, fb_y;
 
 static void configure_mmu_C(uint32_t mmu_adr);
-static void start_mmu_C();
-//static void disable_mmu();
 
 static uint32_t** get_table_base(struct pcb_s* process)
 {
@@ -54,7 +52,7 @@ uint8_t is_forbidden_address(uint32_t addr)
 	return !(addr & 0x3);
 }
 
-static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
+void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uint32_t phy_addr)
 {
     /* Indexes */
     uint32_t second_level_index;
@@ -216,7 +214,7 @@ void switch_mmu_to(struct pcb_s* process)
 	configure_mmu_C((uint32_t) process->page_table);
 }
 
-static void start_mmu_C()
+void start_mmu_C()
 {
 	register unsigned int control;
 
@@ -236,9 +234,9 @@ static void start_mmu_C()
 	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
 
-/*static void disable_mmu()
+void disable_mmu()
 {
-	register unsigned int control;
+	register unsigned int control = 0;
 	__asm("mrc p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 	//Clear bit 2 in the CP15 Control Register c1.
 	control = control & 0xFFFFFFFB; // disable cache
@@ -248,7 +246,7 @@ static void start_mmu_C()
 	control = control & 0xFFFFFFFE;
 	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 	
-}*/
+}
 
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 {

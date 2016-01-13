@@ -34,4 +34,6 @@ uint8_t is_forbidden_address(uint32_t addr);
 uint32_t vmem_alloc_for_userland(struct pcb_s* process, uint32_t size);
 void vmem_free(uint8_t* vAddress, struct pcb_s* process, unsigned int size);
 
+void disable_mmu();
+void start_mmu_C();
 #endif // _VMEM_H

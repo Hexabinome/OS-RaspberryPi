@@ -23,14 +23,14 @@ int process()
 	{
 		// Child
 		momo[1] = 5;
-		sys_nop();
+		sys_yield();
 	}
 	else
 	{
 		// Parent
 		momo[1] = 2;
 		momo++;
-		sys_nop();
+		sys_yield();
 	}
 	
 	return 0;

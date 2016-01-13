@@ -10,7 +10,7 @@
 #include "hw.h"
 
 struct pcb_s* current_process;
-static struct pcb_s kmain_process;
+struct pcb_s kmain_process;
 
 unsigned int nb_process;
 
