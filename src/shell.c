@@ -46,11 +46,11 @@ int start_shell()
 	fb_prompt();
 
 	// Read line
-	//char* cmd_line = "fork\n";
+	char* cmd_line = "fork\n";
 	//char* cmd_line = "ps\n";
-	char * useless_str = "Hello world\n";
-	fb_print_text(useless_str);
-	char* cmd_line = "clear\n";
+	//char * useless_str = "Hello world\n";
+	//fb_print_text(useless_str);
+	//char* cmd_line = "clear\n";
 	fb_print_text(cmd_line);
 	
 	char** args = parse_command(cmd_line, &argc);
@@ -62,7 +62,7 @@ int start_shell()
 	}
 	else
 	{
-		int pid = sys_fork();
+		/*int pid = sys_fork();
 		if (pid == 0)
 		{
 			command(argc-1, args+1); // skip command name
@@ -73,7 +73,8 @@ int start_shell()
 			int cmd_status;
 			sys_waitpid(pid, &cmd_status);
 			// TODO fill shell variable of last return code: $?
-		}
+		}*/
+		command(argc-1, args+1);
 	}
 
 	return 0;
