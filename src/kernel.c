@@ -6,7 +6,6 @@
 #include "fb.h"
 #include "vmem.h"
 #include "sched.h"
-#include "keyboard.h"
 #include "fb_cursor.h"
 
 #include "sched_irq.h"
@@ -16,7 +15,6 @@ void init_kernel()
 	kheap_init();
 	hw_init();
 	audio_init();
-	UsbInitialise();
 	
 #if FB
 	FramebufferInitialize();
@@ -32,7 +30,6 @@ void init_kernel()
 	fb_set_zoom(3);
 	fb_display_info();
 #endif
-
 
 	fb_print_text("Kernel initialized\n");
 }

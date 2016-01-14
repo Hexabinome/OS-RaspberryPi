@@ -6,7 +6,6 @@
 #include "shell_commands.h"
 #include "config.h"
 #include "command_parser.h"
-#include "sem.h"
 
 
 typedef void (command_t) (int, char**);
@@ -38,23 +37,40 @@ static command_t* find_command(char* cmd_name)
 	return NULL;
 }
 
-extern struct sem_s cmd_buffer_sem;
-extern struct sem_s shell_sem;
-extern char* cmd_buffer;
+
+static char* all_cmd[] = 
+{
+	"ps\n",
+	"echo hi\n",
+	"music 0 2 1\n"
+};
+static const uint8_t arg_nb = 3;
+
+static void temp()
+{
+	uint32_t i = 0;
+	while (i++ < 20000000)
+		;
+}
 
 int start_shell()
 {
 	int argc;
 	
-	while (1)
+	fb_print_text(all_cmd[0]);
+	fb_print_text(all_cmd[1]);
+	fb_print_text(all_cmd[2]);
+	
+	uint8_t i;
+	for (i = 0; i < arg_nb; ++i)
 	{
 		fb_prompt();
-		sem_up(&cmd_buffer_sem);
-		
-		sem_down(&shell_sem); // wait until shell is ready
+		char* cmd = all_cmd[i];
+		fb_print_text(cmd);
+		temp();
 		
 		fb_print_text("Loading command... ");
-		char** args = parse_command(cmd_buffer, &argc);
+		char** args = parse_command(cmd, &argc);
 		fb_print_text("Ok. ");
 		command_t* command = find_command(args[0]);
 		fb_print_text("Done.\n");
@@ -83,6 +99,7 @@ int start_shell()
 			command(argc-1, args+1);
 			fb_print_char('\n');
 		}
+		temp();
 	}
 
 	return 0;
