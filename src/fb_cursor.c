@@ -108,29 +108,12 @@ void fb_print_int(register const int x)
 	int i = 0;
 	for(i=0; i<16; i++)
 	{
-		if(string[i]>OFFSET && string[i]<OFFSET+10)
+		if(string[i]>=OFFSET && string[i]<OFFSET+10)
         {
 		    fb_print_char(string[i]);
         }
 	}
-	/*
-	int digit;
-	int tmp = x;
-	int i = 0;
-	register int a,b;
-	while(tmp > 0)
-	{
-		tmp = divide(tmp,10);
-		i++;
-	}
-	while(i > 0)
-	{
-		a = pow(10,i-1);
-		b = divide(x,a);
-		digit = mod(b,10);
-		fb_print_char(digit + OFFSET);
-		i--;
-	}	*/
+	
 }
 
 static uint8_t is_cursor_at_end()

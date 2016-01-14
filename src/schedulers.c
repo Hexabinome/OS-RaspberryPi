@@ -3,6 +3,7 @@
 #include "hw.h"
 #include "asm_tools.h"
 #include "vmem.h"
+#include "fb_cursor.h"
 
 extern struct pcb_s* current_process;
 extern unsigned int nb_process;
@@ -96,17 +97,14 @@ static void electDynamicPriority()
 		}
 		else
 		{
-			(current_process->priority)++;
+			 (current_process->priority) += ((current_process->priority)<20 ?1:0);
 		}
 	}
 
 	current_process = process_to_choose;
-	
-	// to avoid a negativ priority
-	if (current_process->priority > 0)
-	{
-		(current_process->priority)--;
-	}
+
+	(current_process->priority) -= ((current_process->priority)>0 ?1:0); 
+
 }
 
 static void choose_next_process()
@@ -142,6 +140,26 @@ void elect()
 		current_process->status = READY;
 		choose_next_process();
 	}
+	
+	#if DEBUG
+	#if FB
+		fb_print_char('\n');
+		fb_print_text("The process with PID ");
+		fb_print_int(current_process->pid);
+		fb_print_text(" chosen with priority ");
+		fb_print_int(current_process->priority);
+		fb_print_char('\n');
+		
+	#else
+		
+		log_str("\n The process with PID ");
+		log_int(current_process->pid);
+		log_str(" chosen with priority ");
+		log_int(current_process->priority);
+		log_str("\n");
+		
+	#endif	
+	#endif
 	
 	if (current_process->status == TERMINATED || current_process->status  == BLOCKED)
 		elect(); // Elect the next one, and delete the current one
