@@ -32,19 +32,18 @@ static void clean_command(char * cmd)
 char** parse_command(char* cmd, int* argc)
 {
 	clean_command(cmd);
-	unsigned int len = strlen(cmd);
 	
-	char* delim_addr = strtok(cmd, ' ');
+	char* end_pos = strtok(cmd, '\0');
+	char* delim_addr = strfnd(cmd, ' ');
 	
 	char** args = (char**) gmalloc(sizeof(char*));
 	args[0] = cmd;
-	
-	
+
 	uint32_t counter = 1;
-	char* end_pos = &(cmd[len-1]);
 	char* next_delim_addr;
-	while (delim_addr <= end_pos)
+	while (delim_addr < end_pos)
 	{
+		*delim_addr = '\0';
 		next_delim_addr = strtok(delim_addr, ' ');
 		
 		if (delim_addr+1 != next_delim_addr) // the two delimiters are not one after another, a word has been found
