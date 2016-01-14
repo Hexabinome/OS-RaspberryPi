@@ -97,13 +97,13 @@ static void electDynamicPriority()
 		}
 		else
 		{
-			(current_process->priority)=(current_process->priority)+divide(1000,nb_process);
+			 (current_process->priority) += ((current_process->priority)<20 ?1:0);
 		}
 	}
 
 	current_process = process_to_choose;
 
-	(current_process->priority) = (current_process->priority)-1000; 
+	(current_process->priority) -= ((current_process->priority)>0 ?1:0); 
 
 }
 
