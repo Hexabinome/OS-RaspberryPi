@@ -8,8 +8,14 @@
 #include "sched.h"
 #include "keyboard.h"
 #include "fb_cursor.h"
+#include "sem.h"
 
 #include "sched_irq.h"
+
+struct sem_s cmd_buffer_sem;
+struct sem_s shell_sem;
+char* cmd_buffer;
+
 
 void init_kernel()
 {
@@ -33,7 +39,10 @@ void init_kernel()
 	fb_display_info();
 #endif
 
-
+	sem_init(&cmd_buffer_sem, 0);
+	sem_init(&shell_sem, 0);
+	cmd_buffer = (char*) kAlloc(sizeof(char) * 100);
+	
 	fb_print_text("Kernel initialized\n");
 }
 
