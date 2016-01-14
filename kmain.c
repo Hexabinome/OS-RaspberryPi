@@ -3,9 +3,6 @@
 #include "kernel.h"
 #include "syscall.h"
 #include "keyboard.h"
-#include "malloc.h"
-#include "sem.h"
-#include "kheap.h"
 
 void kmain()
 {
