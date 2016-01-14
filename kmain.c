@@ -1,44 +1,32 @@
-#include "syscall.h"
 #include "sched.h"
-#include "pwm.h"
+#include "shell.h"
+#include "kernel.h"
+#include "syscall.h"
+#include "keyboard.h"
+#include "malloc.h"
+#include "sem.h"
+#include "kheap.h"
 
-int process()
-{
-	int32_t cpt = 10;
-	
-	int pid = sys_fork();
-	if (pid == -1)
-	{
-		// failed
-	}
-	else if (pid == 0)
-	{
-		// Child
-		cpt--;
-		while (1) ;
-	}
-	else
-	{
-		// parent
-		cpt++;
-		while (1) ;
-	}
-	
-	return 0;
-}
+struct sem_s cmd_buffer_sem;
+struct sem_s shell_sem;
+char* cmd_buffer;
 
 void kmain()
 {
-	//	audio_test();	
-
-
-	sched_init();
+	init_kernel();
 	
-	create_process(&process);
+	create_process(&keyboard_loop);
+	create_process(&start_shell);
 	
-	irq_init();
+	sem_init(&cmd_buffer_sem, 0);
+	sem_init(&shell_sem, 0);
+	cmd_buffer = (char*) kAlloc(sizeof(char) * 100);
 	
+	start_kernel();
 	__asm("cps 0x10"); // CPU to USER mode
-	
-	while (1) ;
+
+	while (1)
+	{
+		sys_yield();
+	}
 }

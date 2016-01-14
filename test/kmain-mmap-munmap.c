@@ -1,12 +1,11 @@
 #include "syscall.h"
 #include "vmem.h"
-#include "config.h"
-#include "sched.h"
+#include "kernel.h"
 
 extern struct pcb_s* current_process;
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	uint32_t phy_addr;
 	uint32_t size = sizeof(int) * 10;
 	

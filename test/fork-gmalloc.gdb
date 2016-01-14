@@ -8,33 +8,33 @@ commands
   p $pc
   continue
 end
-break kmain-fork-gmalloc.c:13
+break kmain-fork-gmalloc.c:14
 commands
   p momo
   continue
 end
 
-break kmain-fork-gmalloc.c:24
-commands
-  p momo[0]
-  p momo[1]
-  continue
-end
 break kmain-fork-gmalloc.c:25
 commands
+  p momo[0]
+  p momo[1]
+  continue
+end
+break kmain-fork-gmalloc.c:26
+commands
   p momo[1]
   continue
 end
 
 
-break kmain-fork-gmalloc.c:30
+break kmain-fork-gmalloc.c:31
 commands
   p momo[0]
   p momo[1]
   p momo
   continue
 end
-break kmain-fork-gmalloc.c:31
+break kmain-fork-gmalloc.c:32
 commands
   p momo[1]
   continue

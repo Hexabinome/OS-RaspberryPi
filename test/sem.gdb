@@ -19,7 +19,7 @@ commands
   p $pc
   continue
 end
-break kmain-sem.c:10
+break kmain-sem.c:11
 commands
   p $pc
   continue
@@ -30,7 +30,7 @@ commands
   p $pc
   continue
 end
-break kmain-sem.c:18
+break kmain-sem.c:19
 commands
   p $pc
   continue
@@ -41,7 +41,7 @@ commands
   p $pc
   continue
 end
-break kmain-sem.c:26
+break kmain-sem.c:27
 commands
   p $pc
   continue
@@ -52,13 +52,13 @@ commands
   p $pc
   continue
 end
-break kmain-sem.c:33
+break kmain-sem.c:34
 commands
   p $pc
   continue
 end
 
-break kmain-sem.c:53
+break kmain-sem.c:54
 commands
   p $pc
   assert_results

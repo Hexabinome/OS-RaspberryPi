@@ -2,6 +2,7 @@
 #include "syscall.h"
 #include "pwm.h"
 #include "hw.h"
+#include "kernel.h"
 
 struct sem_s mutex;
 
@@ -37,14 +38,13 @@ int process3()
 
 void kmain()
 {
-	audio_init();
-	sched_init();
+	init_kernel();
 	
 	create_process(&process1);
 	create_process(&process2);
 	create_process(&process3);
 	
-	irq_init();
+	start_kernel();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	

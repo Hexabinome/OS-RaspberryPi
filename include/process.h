@@ -1,24 +1,20 @@
-#ifndef _SCHED_H
-#define _SCHED_H
+#ifndef PROCESS_H
+#define PROCESS_H
 
 #include <stdint.h>
 #include "malloc.h"
 
+#define MEMORY_SIZE 1000000 // 100 KB
+#define HEAP_SIZE 900000 // 90 KB
+#define STACK_SIZE 100000 // 10 KB
 #define NBREG 13
-
-enum PROCESS_STATUS
-{
-	READY,
-	RUNNING,
-	TERMINATED,
-	BLOCKED
-};
 
 typedef int (func_t) (void);
 
 struct pcb_s
 {
 	uint32_t pid;
+	uint32_t ppid;
 	
 	uint32_t registers[NBREG];
 	uint32_t lr_svc;
@@ -40,12 +36,10 @@ struct pcb_s
 	struct pcb_s* next_waiting_sem;
 	
 	uint32_t** page_table;
+	
+	// A process knows his children and his brothers
+	struct pcb_s* child;
+	struct pcb_s* brother;
 };
 
-void sched_init();
-void irq_init();
-void create_process(func_t* entry);
-void create_process_with_fix_priority(func_t* entry, int priority);
-void free_process(struct pcb_s* process);
-
-#endif // _SCHED_H
+#endif // PROCESS_H

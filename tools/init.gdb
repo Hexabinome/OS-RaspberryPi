@@ -14,14 +14,11 @@ b kernel_panic
 
 b *kmain
 #b swi_handler
+#b swi_asm_handler
 b irq_handler
 b data_handler
 
-b kmain.c:18
-b kmain.c:24
-b process
-b do_sys_fork
-
+#b do_sys_fork
 
 source utils.gdb
 

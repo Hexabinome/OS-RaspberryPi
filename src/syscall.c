@@ -15,7 +15,9 @@ enum SYSCALLS
 	MMAP,
 	MUNMAP,
 	SETSCHEDULER,
-	FORK
+	FORK,
+	WAIT,
+	WAITPID
 };
 
 void sys_reboot()
@@ -162,7 +164,22 @@ int sys_fork()
 	return return_pid;
 }
 
-void do_sys_fork(uint32_t* sp); // implemented in sched.c
+void do_sys_fork(uint32_t* sp); // implemented in fork.c
+
+void sys_wait(int* status)
+{
+	sys_waitpid(-1, status);
+}
+
+void sys_waitpid(unsigned int pid, int* status)
+{
+	__asm("MOV r0, %0": : "r"(WAITPID));
+	__asm("MOV r1, %0": : "r"(pid));
+	__asm("MOV r2, %0": : "r"(status));
+	__asm("SWI #0");
+}
+
+void do_sys_waitpid(uint32_t* sp); // implemented in fork.c
 
 void __attribute__((naked)) swi_handler()
 {
@@ -207,6 +224,9 @@ void __attribute__((naked)) swi_handler()
 			break;
 		case FORK:
 			do_sys_fork(sp);
+			break;
+		case WAITPID:
+			do_sys_waitpid(sp);
 			break;
 		default:
 			PANIC();

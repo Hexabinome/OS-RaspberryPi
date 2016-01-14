@@ -2,6 +2,7 @@
 #include "sched.h"
 #include "schedulers.h"
 #include "asm_tools.h"
+#include "kernel.h"
 
 extern struct pcb_s* current_process;
 
@@ -22,7 +23,7 @@ int process3()
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	int ret;
 	
 	ret = sys_setscheduler(ROUND_ROBIN_SCHED); // returns 0
@@ -30,7 +31,7 @@ void kmain()
 	create_process(&process2);
 	create_process(&process3);
 	
-	irq_init();
+	start_kernel();
 	
 	while (current_process != current_process->next || current_process != current_process->previous) ;
 	

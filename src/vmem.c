@@ -4,13 +4,17 @@
 #include "vmem_helper.h"
 #include "util.h"
 #include "hw.h"
+#include "asm_tools.h"
 #include "syscall.h"
-
+#include "process.h"
+#include "sched.h"
 
 unsigned int MMUTABLEBASE; /* Page table address */
 static uint8_t* frame_table; /* frame occupation table */
 
-static const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
+static const uint32_t device_heap_start = (uint32_t) &__devices_start__;
+static const uint32_t device_heap_end = (uint32_t) &__devices_end__;
+const uint32_t kernel_heap_end = (uint32_t) &__kernel_heap_end__;
 extern uint32_t __irq_stack_end__;
 
 static const uint8_t first_table_flags = 1; // 0b0000000001
@@ -22,6 +26,13 @@ const uint16_t device_address_page_table_idx_start = 0x20000000 >> 20;
 const uint16_t device_address_page_table_idx_end = (0x20000000 >> 20) + 16;
 
 extern struct pcb_s* current_process;
+// Variables for framebuffer
+extern uint32_t fb_address;
+extern uint32_t pitch, fb_x, fb_y;
+
+static void configure_mmu_C(uint32_t mmu_adr);
+static void start_mmu_C();
+//static void disable_mmu();
 
 static uint32_t** get_table_base(struct pcb_s* process)
 {
@@ -58,17 +69,16 @@ static void set_second_table_value(uint32_t** table_base, uint32_t log_addr, uin
     second_level_table = (uint32_t*)(first_level_descriptor & 0xFFFFFC00); // keep from bit 12 to 31
     second_level_descriptor_address = (uint32_t*) ((uint32_t)second_level_table | (second_level_index << 2));
     *second_level_descriptor_address = (phy_addr & 0xFFFFF000) | kernel_flags;
-// TODO okay ?
 }
 
 void vmem_init()
 {
-	kheap_init();
+	// kheap must already be initialized
 	
 	MMUTABLEBASE = (unsigned int) init_translation_table();
 	frame_table = init_frame_occupation_table();
 	
-	configure_mmu_kernel();
+	configure_mmu_C(MMUTABLEBASE);
 	start_mmu_C();
 }
 
@@ -112,7 +122,7 @@ uint32_t** init_translation_table(void)
 		(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
 	}
 	// Fill second level tables
-	for(log_addr = 0x20000000; log_addr < 0x20FFFFFF; log_addr += PAGE_SIZE)
+	for(log_addr = device_heap_start; log_addr < device_heap_end; log_addr += PAGE_SIZE)
     {
         first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
 		first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
@@ -124,7 +134,31 @@ uint32_t** init_translation_table(void)
 
         *second_level_descriptor_address = (log_addr & 0xFFFFF000) | device_flags;
     }
-	
+    
+    if (fb_address != 0) // if FrameInitialize has been called
+    {    
+		// Map addresses for framebuffer
+		uint32_t fb_max_addr = fb_address + ((fb_y * pitch) + (fb_x * 3)); // formula from fb.c:put_pixel_RGB24
+		for(i = (fb_address >> 20); i <= (fb_max_addr >> 20); i++)
+		{
+			first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (i << 2));
+			(*first_level_descriptor_address) = (uint32_t) kAlloc_aligned(SECON_LVL_TT_SIZE, SECON_LVL_TT_ALIG) | first_table_flags;
+		}
+		// Fill second level tables
+		for(log_addr = fb_address; log_addr <= fb_max_addr; log_addr += PAGE_SIZE)
+		{
+			first_lvl_idx = log_addr >> FIRST_LVL_IDX_BEGIN;
+			first_level_descriptor_address = (uint32_t*) ((uint32_t)page_table | (first_lvl_idx << 2));
+
+			first_lvl_desc = (*first_level_descriptor_address) & SECOND_LVL_ADDR_MASK;
+			second_lvl_idx = (log_addr >> SECOND_LVL_IDX_BEGIN) & SECOND_LVL_IDX_LEN;
+
+			second_level_descriptor_address = (uint32_t*) (first_lvl_desc | (second_lvl_idx << 2));
+
+			*second_level_descriptor_address = ((log_addr - 0x10000000) & 0xFFFFF000) | device_flags;
+		}
+	}
+
 	return page_table;
 }
 
@@ -134,8 +168,8 @@ uint8_t* init_frame_occupation_table(void)
 	
 	unsigned int i;
 	unsigned int frame_kernel_heap_end = divide(kernel_heap_end, FRAME_SIZE);
-	unsigned int frame_devices_start = divide(0x20000000, FRAME_SIZE);
-	unsigned int frame_devices_end = divide(0x20FFFFFF, FRAME_SIZE);
+	unsigned int frame_devices_start = divide(device_heap_start, FRAME_SIZE);
+	unsigned int frame_devices_end = divide(device_heap_end, FRAME_SIZE);
 	
 	for (i = 0; i <= frame_kernel_heap_end; ++i)
 	{
@@ -151,14 +185,9 @@ uint8_t* init_frame_occupation_table(void)
 	}
 	
 	return ft;
-}	
-void configure_mmu_kernel()
-{
-	configure_mmu_C(MMUTABLEBASE);
 }
 
-
-void configure_mmu_C(uint32_t mmu_adr)
+static void configure_mmu_C(uint32_t mmu_adr)
 {
 	register unsigned int pt_addr = mmu_adr;
 	
@@ -175,7 +204,19 @@ void configure_mmu_C(uint32_t mmu_adr)
 	__asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
 
-void start_mmu_C()
+void switch_mmu_to_kernel()
+{
+	INVALIDATE_TLB();
+	configure_mmu_C(MMUTABLEBASE);
+}
+
+void switch_mmu_to(struct pcb_s* process)
+{
+	INVALIDATE_TLB();
+	configure_mmu_C((uint32_t) process->page_table);
+}
+
+static void start_mmu_C()
 {
 	register unsigned int control;
 
@@ -194,6 +235,20 @@ void start_mmu_C()
 	// doc at http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0333h/I1031142.html
 	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
+
+/*static void disable_mmu()
+{
+	register unsigned int control;
+	__asm("mrc p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
+	//Clear bit 2 in the CP15 Control Register c1.
+	control = control & 0xFFFFFFFB; // disable cache
+	//http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0360e/BABEEGBE.html
+	INVALIDATE_TLB();
+	//Clear bit 0 in the CP15 Control Register c1.
+	control = control & 0xFFFFFFFE;
+	__asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
+	
+}*/
 
 uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 {
@@ -215,12 +270,6 @@ uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 	
 	
     return (uint32_t) get_phy_addr_from(second_lvl_desc, va);
-}
-
-uint32_t vmem_translate_back(uint32_t phy_addr, struct pcb_s* process)
-{
-	// TODO
-	return 0;
 }
 
 static uint32_t get_nb_pages(uint32_t size)
@@ -394,12 +443,19 @@ void do_sys_munmap(uint32_t* sp)
 	vmem_free(addr, current_process, size);
 }
 
+#if FB
+#include "fb_cursor.h"
+#endif
 void data_handler()
 {
 	uint8_t fault_status, fault_address;
 	__asm("MRC p15, 0, %0, c5, c0, 0" : "=r"(fault_status));
 	__asm("MRC p15, 0, %0, c6, c0, 0" : "=r"(fault_address));
 
+#if FB
+	fb_print_text("DATA ERROR\n");
+#endif
+	
 	sys_exit(-1);
 	//terminate_kernel();
 }

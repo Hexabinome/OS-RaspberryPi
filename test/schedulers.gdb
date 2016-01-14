@@ -19,27 +19,27 @@ commands
   continue
 end
 
-break kmain-schedulers.c:29
+break kmain-schedulers.c:30
 commands
   p ret
   continue
 end
-break kmain-schedulers.c:40
+break kmain-schedulers.c:41
 commands
   p ret
   continue
 end
-break kmain-schedulers.c:51
+break kmain-schedulers.c:52
 commands
   p ret
   continue
 end
-break kmain-schedulers.c:62
+break kmain-schedulers.c:63
 commands
   p ret
   continue
 end
-break kmain-schedulers.c:72
+break kmain-schedulers.c:73
 commands
   p ret
   assert_results

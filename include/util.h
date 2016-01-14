@@ -5,5 +5,7 @@
 #define ASSERT(exp) do { if(!(exp)) PANIC(); } while(0)
 
 void kernel_panic(char* string, int number);
-
+int pow(int x, int y);
+int mod(int a, int b);
+void int_to_str(char* str ,int n);
 #endif

@@ -3,8 +3,6 @@
 #include "syscall.h"
 #include "asm_tools.h"
 
-// TODO : operations must be atomic
-
 extern struct pcb_s* current_process;
 
 void sem_init(struct sem_s* sem, unsigned int val)
@@ -53,7 +51,7 @@ void sem_up(struct sem_s* sem)
 		// Set the next first waiting process
 		sem->first_waiting = unblocked_process->next_waiting_sem;
 		
-		// Might already by NULL if it was the only or last process waiting for the semaphore
+		// Might already be NULL if it was the only or last process waiting for the semaphore
 		unblocked_process->next_waiting_sem = NULL;
 	}
 	ENABLE_IRQ();

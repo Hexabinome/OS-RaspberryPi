@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include "kheap.h"
 
-
 struct fl {
 	struct fl	*next;
 	unsigned int	size;

@@ -1,6 +1,7 @@
 #include "syscall.h"
 #include "sched.h"
 #include "malloc.h"
+#include "kernel.h"
 
 static int my_fork()
 {
@@ -37,11 +38,11 @@ int process()
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	
 	create_process(&process);
 	
-	irq_init();
+	start_kernel();
 	
 	__asm("cps 0x10"); // CPU to USER mode
 	

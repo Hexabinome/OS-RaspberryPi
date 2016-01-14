@@ -9,17 +9,17 @@ commands
   continue 
 end
 
-break kmain-mmap-munmap.c:14
+break kmain-mmap-munmap.c:13
 commands
   p/x tab
   continue
 end
-break kmain-mmap-munmap.c:16
+break kmain-mmap-munmap.c:15
 commands
   p/x phy_addr
   continue
 end
-break kmain-mmap-munmap.c:20
+break kmain-mmap-munmap.c:19
 commands
   p tab[0]
   p tab[1]
@@ -27,19 +27,19 @@ commands
   p tab[9]
   continue
 end
-break kmain-mmap-munmap.c:24
+break kmain-mmap-munmap.c:23
 commands
   p/x phy_addr
   continue
 end
 
 
-break kmain-mmap-munmap.c:28
+break kmain-mmap-munmap.c:27
 commands
   p/x tab
   continue
 end
-break kmain-mmap-munmap.c:32
+break kmain-mmap-munmap.c:31
 commands
   p tab[0]
   p tab[1]

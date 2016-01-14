@@ -1,10 +1,10 @@
-#include "sched.h"
+#include "kernel.h"
 #include "vmem.h"
 #include "config.h"
 
 void kmain()
 {
-	sched_init();
+	init_kernel();
 	
 	uint32_t log_addr1 = vmem_alloc_for_userland(NULL, 1024); // alloc 1KiB, one page only
 	
