@@ -40,7 +40,6 @@ void kmain()
 {
 	init_kernel();
 	int ret;
-	fb_print_int(10);
 	ret = sys_setscheduler(DYNAMIC_PRIORITY_SCHED);
 	ret++;
 	create_process_with_fix_priority(&process1, 10);
