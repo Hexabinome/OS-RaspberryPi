@@ -169,16 +169,16 @@ void playSound(int soundNumber)
     
     // by default the number of samples is constant (since most files are the synthesizer samples, they all have the same size)
     // the other files however, representing proper music-files need to override this parameter.
-    int fileSampleAmount = 25000;
+    int fileSampleAmount = 10000;
     
     switch(soundNumber)
     {
 		case 0:
-			fileSampleAmount    = 400000;
+			fileSampleAmount    = 585000;
 			soundToPlay	= audio_data;
 			break;
 		case 1:	
-			fileSampleAmount    = 250000;
+			fileSampleAmount    = 376000;
 			soundToPlay	= audio_data7;
 			break;
 		case 2:	
@@ -256,15 +256,14 @@ void playSound(int soundNumber)
     }
     
         //this amount of samples to be played back changes in accordance to the number of samples to be skipped.
-        int sampleAmount = divide(fileSampleAmount, skipper);
-	while(i < sampleAmount)
+	while(i < fileSampleAmount)
 	{
 		status =  *(pwm + BCM2835_PWM_STATUS);
 		if (!(status & BCM2835_FULL1))
 		{
 			/* Decomment this in order to get sound */
-			*(pwm+BCM2835_PWM_FIFO) = soundToPlay[i*(skipper+1)];
-			i++;
+			*(pwm+BCM2835_PWM_FIFO) = soundToPlay[i];
+			i = i + skipper;
 		}
 		  
 		if ((status & ERRORMASK))
