@@ -29,7 +29,7 @@ void init_kernel()
 	sched_init();
 
 #if FB
-	fb_set_zoom(2);
+	fb_set_zoom(3);
 	fb_display_info();
 #endif
 

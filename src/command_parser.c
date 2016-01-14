@@ -14,7 +14,7 @@ static void clean_command(char * cmd)
 
 }
 
-static char* find_next_delim_and_replace(char* str, char* delim)
+/*static char* find_next_delim_and_replace(char* str, char* delim)
 {
 	char* next_space = strfnd(str, ' ');
 	char* next_double_quotes = strfnd(str, '"');
@@ -27,14 +27,40 @@ static char* find_next_delim_and_replace(char* str, char* delim)
 	*res = '\0';
 	
 	return res;
-}
+}*/
 
 char** parse_command(char* cmd, int* argc)
 {
 	clean_command(cmd);
 	unsigned int len = strlen(cmd);
 	
-	char delim;
+	char* delim_addr = strtok(cmd, ' ');
+	
+	char** args = (char**) gmalloc(sizeof(char*));
+	args[0] = cmd;
+	
+	
+	uint32_t counter = 1;
+	char* end_pos = &(cmd[len-1]);
+	char* next_delim_addr;
+	while (delim_addr <= end_pos)
+	{
+		next_delim_addr = strtok(delim_addr, ' ');
+		
+		if (delim_addr+1 != next_delim_addr) // the two delimiters are not one after another, a word has been found
+		{
+			args = (char**) grealloc(args, sizeof(char*) * (counter++));
+			args[counter-1] = delim_addr+1;
+		}
+		
+		delim_addr = next_delim_addr;
+	}
+	
+	*argc = counter;
+
+	return args;
+	
+	/*char delim;
 	char* delim_addr = find_next_delim_and_replace(cmd, &delim);
 	
 	char** args = (char**) gmalloc(sizeof(char*));
@@ -67,7 +93,7 @@ char** parse_command(char* cmd, int* argc)
 	
 	*argc = counter;
 
-	return args;
+	return args;*/
 }
 
 int str_to_int(char* str)
