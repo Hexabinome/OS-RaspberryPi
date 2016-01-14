@@ -77,7 +77,8 @@ char* audio_data98bitmono= &_binary_sounds_98bitmono_wav_start;
 
 // Skipper is the amount of samples to be skipped after every played sample.
 // Example 0: play all samples, 3: play one out of 4 samples.
-int skipper = 0;
+int skipper = 2;
+unsigned int idiv = 2;
 
 void pause(int t) {
     // Pause for about t ms
@@ -100,9 +101,6 @@ void audio_init(void)
     // So we have to find a trade of between reaching the propper frequency and preserving audio quality.
     // This is doable by picking skipper = 1, idiv = 2
     // Note: this cannot be acomplished without skipper ans idiv=1, since idiv does not work if <2
-    skipper = 2;//3;
-    unsigned int idiv = 2;//4;
-    //unsigned int pwmFrequency = (19200000 * pitch_converter / idiv) / range; 
 
     SET_GPIO_ALT(40, 0);
     SET_GPIO_ALT(45, 0);
@@ -134,9 +132,29 @@ void audio_init(void)
     pause(2);
 }
 
-void playSound(int soundNumber)
+void updateSkipper(int newSkipper)
 {
-	int i=0;
+	skipper=newSkipper;
+}
+
+void updateIdiv(int newIdiv)
+{
+	idiv=newIdiv;
+}
+
+void playPitchedSound(int soundNumber, int nextSkipper, int nextIdiv)
+{
+	skipper = nextSkipper;
+	idiv = nextIdiv;
+	audio_init();
+	playSound(soundNumber);
+}
+
+void playSound(int soundNumber)
+{   
+//    audio_init();
+
+    int i=0;
     long status;
     char* soundToPlay;
     
