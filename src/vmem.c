@@ -443,12 +443,19 @@ void do_sys_munmap(uint32_t* sp)
 	vmem_free(addr, current_process, size);
 }
 
+#if FB
+#include "fb_cursor.h"
+#endif
 void data_handler()
 {
 	uint8_t fault_status, fault_address;
 	__asm("MRC p15, 0, %0, c5, c0, 0" : "=r"(fault_status));
 	__asm("MRC p15, 0, %0, c6, c0, 0" : "=r"(fault_address));
 
+#if FB
+	fb_print_text("DATA ERROR\n");
+#endif
+	
 	sys_exit(-1);
 	//terminate_kernel();
 }

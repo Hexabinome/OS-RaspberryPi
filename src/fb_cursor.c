@@ -88,7 +88,12 @@ void fb_print_char(const char c)
 		move_right(&cursor_x, &cursor_y);
 	    move_right(&end_x, &end_y);
 	}
+}
 
+void fb_print_curr_char(const char c)
+{
+	uint64_t f = font[(int)c];
+	draw_bitmap(f);
 }
 
 void fb_print_int(register const int x)

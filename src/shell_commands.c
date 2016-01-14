@@ -4,6 +4,8 @@
 #include "sched.h"
 #include "fb_cursor.h"
 #include "syscall.h"
+#include "pwm.h"
+#include "command_parser.h"
 
 
 extern struct pcb_s* current_process;
@@ -55,34 +57,53 @@ void do_fork(int argc, char** argv)
 {
 	int pid = sys_fork();
 	if (pid == 0)
-		{
-			fb_print_text("child talking, my pid is ");
-			fb_print_int(current_process->pid);
-			fb_print_text(" and my ppid is ");
-			fb_print_int(current_process->ppid);
-			fb_print_char('\n');
-			sys_exit(0);
-		}
-		else
-		{
-			int cmd_status;
-			fb_print_text("parent talking, my pid is ");
-			fb_print_int(current_process->pid);
-			fb_print_char('\n');
-			sys_waitpid(pid, &cmd_status);
-		}
+	{
+		fb_print_text("child talking, my pid is ");
+		fb_print_int(current_process->pid);
+		fb_print_text(" and my ppid is ");
+		fb_print_int(current_process->ppid);
+		fb_print_char('\n');
+		sys_exit(0);
+	}
+	else
+	{
+		int cmd_status;
+		fb_print_text("parent talking, my pid is ");
+		fb_print_int(current_process->pid);
+		fb_print_char('\n');
+		sys_waitpid(pid, &cmd_status);
+	}
 
 }
 
-//TODO
+
 void do_music(int argc, char** argv)
 {
-
+	int sound_nb;
+	int i = 0;
+	while (i < argc)
+	{
+		sound_nb = str_to_int(argv[i++]);
+	
+		if (sound_nb < SOUND_IDX_BEGIN || sound_nb > SOUND_IDX_END)
+		{
+			fb_print_text("Invalid sound index. Select from ");
+			fb_print_int(SOUND_IDX_BEGIN);
+			fb_print_text(" to ");
+			fb_print_int(SOUND_IDX_END);
+			fb_print_char('\n');
+			return;
+		}
+		
+		fb_print_text("Playing ");
+		fb_print_int(sound_nb);
+		fb_print_text("...\n");
+		playSound(sound_nb);
+	}
 }
 
 
 void do_clear(int argc, char** argv)
 {
 	fb_clear();
-	
 }

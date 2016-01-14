@@ -6,6 +6,7 @@
 void fb_prompt();
 void fb_print_text(const char* const msg);
 void fb_print_char(const char c);
+void fb_print_curr_char(const char c);
 void fb_print_int(const int x);
 void fb_backspace();
 void fb_delete();

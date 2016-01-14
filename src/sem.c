@@ -51,7 +51,7 @@ void sem_up(struct sem_s* sem)
 		// Set the next first waiting process
 		sem->first_waiting = unblocked_process->next_waiting_sem;
 		
-		// Might already by NULL if it was the only or last process waiting for the semaphore
+		// Might already be NULL if it was the only or last process waiting for the semaphore
 		unblocked_process->next_waiting_sem = NULL;
 	}
 	ENABLE_IRQ();
