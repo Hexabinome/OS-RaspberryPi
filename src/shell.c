@@ -34,6 +34,10 @@ static command_t* find_command(char* cmd_name)
 	{
 		return &do_clear;
 	}
+	else if (strcmp(cmd_name, "pitched") == 0)
+	{
+		return &do_pitched_music;
+	}
 
 	return NULL;
 }
