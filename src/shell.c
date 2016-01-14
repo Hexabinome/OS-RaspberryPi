@@ -33,6 +33,14 @@ static command_t* find_command(char* cmd_name)
 	{
 		return &do_clear;
 	}
+	else if (strcmp(cmd_name, "pitched") == 0)
+	{
+		return &do_pitched_music;
+	}
+	else if (strcmp(cmd_name, "melody") == 0)
+	{
+		return &do_melody;
+	}
 
 	return NULL;
 }
@@ -42,9 +50,10 @@ static char* all_cmd[] =
 {
 	"ps\n",
 	"echo hi\n",
-	"music 0 2 1\n"
+	"melody 2 3 4 5 2 3 4 5\n",
+	"melody 2 3 4 5 2 3 4 5\n"
 };
-static const uint8_t arg_nb = 3;
+static const uint8_t arg_nb = 4;
 
 static void temp()
 {
@@ -57,24 +66,16 @@ int start_shell()
 {
 	int argc;
 	
-	fb_print_text(all_cmd[0]);
-	fb_print_text(all_cmd[1]);
-	fb_print_text(all_cmd[2]);
-	
 	uint8_t i;
 	for (i = 0; i < arg_nb; ++i)
 	{
 		fb_prompt();
 		char* cmd = all_cmd[i];
 		fb_print_text(cmd);
-		temp();
-		
-		fb_print_text("Loading command... ");
+
 		char** args = parse_command(cmd, &argc);
-		fb_print_text("Ok. ");
+
 		command_t* command = find_command(args[0]);
-		fb_print_text("Done.\n");
-		
 		if (command == NULL)
 		{
 			fb_print_text("Command not found\n");

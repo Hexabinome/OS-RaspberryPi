@@ -94,7 +94,7 @@ void do_music(int argc, char** argv)
 			fb_print_char('\n');
 			return;
 		}
-		
+
 		fb_print_text("Playing ");
 		fb_print_int(sound_nb);
 		fb_print_text("...\n");
@@ -106,4 +106,35 @@ void do_music(int argc, char** argv)
 void do_clear(int argc, char** argv)
 {
 	fb_clear();
+}
+
+void do_pitched_music(int argc, char** argv)
+{
+	if (argc < 3)
+	{
+		fb_print_text("Not enough arguments. Command line example :\n");
+		fb_print_text("music_pitched music_nb sample_skip clock_div\n");
+	}
+	else
+	{
+		int music = str_to_int(argv[0]);
+		int sample_skip = str_to_int(argv[1]);
+		int clock_div = str_to_int(argv[2]);
+
+		playPitchedSound(music, sample_skip, clock_div);
+	}
+}
+
+void do_melody(int argc, char** argv)
+{
+	int* melody_array = (int*) gmalloc(sizeof(int) * argc);
+	uint32_t i;
+	for (i = 0; i < argc; ++i)
+	{
+		melody_array[i] = str_to_int(argv[i]);
+	}
+
+	fb_print_text("Playing your custom melody!\n");
+	playMelody(melody_array, argc);
+	gfree(melody_array);
 }

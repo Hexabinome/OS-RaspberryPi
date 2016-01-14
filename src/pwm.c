@@ -77,7 +77,8 @@ char* audio_data98bitmono= &_binary_sounds_98bitmono_wav_start;
 
 // Skipper is the amount of samples to be skipped after every played sample.
 // Example 0: play all samples, 3: play one out of 4 samples.
-int skipper = 0;
+int skipper = 2;
+unsigned int idiv = 2;
 
 void pause(int t) {
     // Pause for about t ms
@@ -93,16 +94,6 @@ void pause(int t) {
 void audio_init(void)
 {
     unsigned int range = 0x400;
-    
-    // The playback pitch correction can be adjusted using the ratio of idiv to (skipper+1)
-    // The optimal ratio is close to a pitch correction of = 1.14
-    // Unfortunately the played back audio quality suffers under-sampling as skipper increases, 
-    // So we have to find a trade of between reaching the propper frequency and preserving audio quality.
-    // This is doable by picking skipper = 1, idiv = 2
-    // Note: this cannot be acomplished without skipper ans idiv=1, since idiv does not work if <2
-    skipper = 2;//3;
-    unsigned int idiv = 2;//4;
-    //unsigned int pwmFrequency = (19200000 * pitch_converter / idiv) / range; 
 
     SET_GPIO_ALT(40, 0);
     SET_GPIO_ALT(45, 0);
@@ -134,18 +125,60 @@ void audio_init(void)
     pause(2);
 }
 
-void playSound(int soundNumber)
+void updateSkipper(int newSkipper)
 {
-	int i=0;
+	skipper=newSkipper;
+}
+
+void updateIdiv(int newIdiv)
+{
+	idiv=newIdiv;
+}
+
+// The playback pitch correction can be adjusted using the ratio of idiv to (skipper+1)
+// The optimal ratio is close to a pitch correction of = 1.14
+// Unfortunately the played back audio quality suffers under-sampling as skipper increases, 
+// So we have to find a trade of between reaching the propper frequency and preserving audio quality.
+// This is doable by picking skipper = 1, idiv = 2
+// Note: this cannot be acomplished without skipper ans idiv=1, since idiv does not work if <2
+void playPitchedSound(int soundNumber, int nextSkipper, int nextIdiv)
+{
+	skipper = nextSkipper;
+	idiv = nextIdiv;
+	audio_init();
+	playSound(soundNumber);
+}
+
+void playMelody(int melody[], int melodyLength)
+{	
+	int noteIterator = 0;
+	while(noteIterator < melodyLength)
+	{
+		playSound(melody[noteIterator]);
+		noteIterator++;
+	}
+}
+
+void playSound(int soundNumber)
+{   
+    audio_init();
+
+    int i=0;
     long status;
     char* soundToPlay;
+    
+    // by default the number of samples is constant (since most files are the synthesizer samples, they all have the same size)
+    // the other files however, representing proper music-files need to override this parameter.
+    int fileSampleAmount = 25000;
     
     switch(soundNumber)
     {
 		case 0:
+			fileSampleAmount    = 400000;
 			soundToPlay	= audio_data;
 			break;
 		case 1:	
+			fileSampleAmount    = 250000;
 			soundToPlay	= audio_data7;
 			break;
 		case 2:	
@@ -222,7 +255,9 @@ void playSound(int soundNumber)
 			break;
     }
     
-	while (i < 125000)
+        //this amount of samples to be played back changes in accordance to the number of samples to be skipped.
+        int sampleAmount = divide(fileSampleAmount, skipper);
+	while(i < sampleAmount)
 	{
 		status =  *(pwm + BCM2835_PWM_STATUS);
 		if (!(status & BCM2835_FULL1))
@@ -241,6 +276,10 @@ void playSound(int soundNumber)
 		}
 	}
 	i=0;
+	
+	// reset any pitch modulations that might still be stored
+	idiv = 2;
+	skipper = 2;
 }
 
 void audio_test()

@@ -7,8 +7,14 @@
 #include "vmem.h"
 #include "sched.h"
 #include "fb_cursor.h"
+#include "sem.h"
 
 #include "sched_irq.h"
+
+struct sem_s cmd_buffer_sem;
+struct sem_s shell_sem;
+char* cmd_buffer;
+
 
 void init_kernel()
 {

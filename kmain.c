@@ -2,6 +2,13 @@
 #include "shell.h"
 #include "kernel.h"
 #include "syscall.h"
+<<<<<<< HEAD
+=======
+#include "keyboard.h"
+#include "malloc.h"
+#include "sem.h"
+#include "kheap.h"
+>>>>>>> master
 
 void kmain()
 {
