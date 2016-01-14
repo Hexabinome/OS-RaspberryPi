@@ -124,3 +124,17 @@ void do_pitched_music(int argc, char** argv)
 		playPitchedSound(music, sample_skip, clock_div);
 	}
 }
+
+void do_melody(int argc, char** argv)
+{
+	int* melody_array = (int*) gmalloc(sizeof(int) * argc);
+	uint32_t i;
+	for (i = 0; i < argc; ++i)
+	{
+		melody_array[i] = str_to_int(argv[i]);
+	}
+
+	fb_print_text("Playing your custom melody!\n");
+	playMelody(melody_array, argc);
+	gfree(melody_array);
+}

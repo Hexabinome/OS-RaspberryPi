@@ -7,5 +7,6 @@ void do_fork(int argc, char** argv);
 void do_music(int argc, char** argv);
 void do_clear(int argc, char** argv);
 void do_pitched_music(int argc, char** argv);
+void do_melody(int argc, char** argv);
 
 #endif // SHELL_COMMANDS_H
