@@ -149,9 +149,19 @@ void playPitchedSound(int soundNumber, int nextSkipper, int nextIdiv)
 	playSound(soundNumber);
 }
 
+void playMelody(int melody[], int melodyLength)
+{	
+	int noteIterator = 0;
+	while(noteIterator < melodyLength)
+	{
+		playSound(melody[noteIterator]);
+		noteIterator++;
+	}
+}
+
 void playSound(int soundNumber)
 {   
-//    audio_init();
+    audio_init();
 
     int i=0;
     long status;
@@ -159,11 +169,12 @@ void playSound(int soundNumber)
     
     // by default the number of samples is constant (since most files are the synthesizer samples, they all have the same size)
     // the other files however, representing proper music-files need to override this parameter.
-    int fileSampleAmount = 50000;
+    int fileSampleAmount = 25000;
     
     switch(soundNumber)
     {
 		case 0:
+			fileSampleAmount    = 400000;
 			soundToPlay	= audio_data;
 			break;
 		case 1:	
