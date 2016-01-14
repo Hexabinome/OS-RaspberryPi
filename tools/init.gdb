@@ -19,6 +19,7 @@ b irq_handler
 b data_handler
 
 #b do_sys_fork
+b start_shell
 
 source utils.gdb
 
