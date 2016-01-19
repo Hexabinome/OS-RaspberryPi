@@ -39,7 +39,7 @@ And _gdb-arm-none-eabi_ for debugging (at least 7.10 version) :
 * ```./configure –prefix=<install_dir> –target=arm-none-eabi –enable-tui```
 * ```make```
 * ```make install```
-* Add <install_dir>/bin to your _PATH_
+* Add _\<install_dir\>/bin_ to your _PATH_
 
 
 To launch the kernel, go to _tools/_.
