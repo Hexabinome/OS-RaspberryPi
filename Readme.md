@@ -68,7 +68,7 @@ If we had more time and not other projects, we would have done
 * And a lot more
 
 ## Tests
-We have a no-regression _framework_, which is actually a simple python file which executes a list of tests and say if they passed or not.
+We have a no-regression _framework_, which is actually a simple python file which executes a list of tests and say if they pass or not.
 
 A test is composed of a C source file (kmain...) and a gdb file (which asserts the resulting values).
 
