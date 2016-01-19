@@ -48,7 +48,7 @@ To launch the kernel, go to _tools/_.
 
 While _qemu_ is running, launch, from another terminal, ```./run-gdb.sh```
 
-You can now, step by step, go threw the kernel execution.
+You can now, step by step, go through the kernel execution.
 We recommand to be on the _shell-fb_ branch, which doesn't need contain the keyboard (which is quite difficult to work with in qemu)
 
 ### On RaspberryPi
